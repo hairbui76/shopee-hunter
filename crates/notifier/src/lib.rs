@@ -23,6 +23,7 @@
 //! raw upstream payloads; see [`format::scrub`] and
 //! [`TelegramNotifier`]'s token handling.
 
+pub mod commands;
 pub mod error;
 pub mod format;
 pub mod notifier;
@@ -30,6 +31,9 @@ pub mod outbox;
 pub mod stub;
 pub mod telegram;
 
+pub use commands::{
+    authorize as authorize_command, parse_command, AdminCommand, AuthOutcome, OwnerAllowlist,
+};
 pub use error::NotifierError;
 pub use format::{
     category_for, render, render_event, MessageCategory, RenderedMessage, MAX_MESSAGE_CHARS,
