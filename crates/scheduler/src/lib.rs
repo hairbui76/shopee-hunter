@@ -7,7 +7,9 @@
 //! independent of ordinary wall-clock corrections.
 
 pub mod precision;
+pub mod report;
 pub mod scheduler;
 
 pub use precision::{monotonic_delay, ExecutionReport, PrecisionRunner};
+pub use report::{PrecisionReport, PrecisionStats};
 pub use scheduler::{ReconstructReport, Scheduler, SchedulerConfig};
