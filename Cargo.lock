@@ -2184,6 +2184,23 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f8fadd59c855ef2080decdef8ff161eb6661b86933c9d82e5ba29dc602a55aba"
 
 [[package]]
+name = "shopee-hunter-analytics"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "serde",
+ "serde_json",
+ "shopee-hunter-domain",
+ "shopee-hunter-storage",
+ "sqlx",
+ "tempfile",
+ "thiserror 2.0.19",
+ "tokio",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
 name = "shopee-hunter-app"
 version = "0.1.0"
 dependencies = [
@@ -2328,6 +2345,19 @@ dependencies = [
  "tokio-util",
  "tracing",
  "tracing-subscriber",
+]
+
+[[package]]
+name = "shopee-hunter-planning"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "rust_decimal",
+ "serde",
+ "serde_json",
+ "shopee-hunter-domain",
+ "shopee-hunter-ranking",
+ "thiserror 2.0.19",
 ]
 
 [[package]]

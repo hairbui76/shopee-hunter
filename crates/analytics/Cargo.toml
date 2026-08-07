@@ -8,6 +8,10 @@ publish.workspace = true
 [dependencies]
 shopee-hunter-domain.workspace = true
 shopee-hunter-storage.workspace = true
+# Needed to run read-only aggregate queries over the shared `Database` pool
+# rather than adding methods to the storage crate. Already a workspace
+# dependency (storage uses it), so nothing new enters the lockfile.
+sqlx.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 thiserror.workspace = true
