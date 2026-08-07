@@ -1,0 +1,5 @@
+[toolchain]
+# Pinned stable toolchain for reproducible builds (see CLAUDE.md "Technical defaults").
+# Bump deliberately; CI and production images must build with this exact version.
+channel = "1.94.0"
+components = ["rustfmt", "clippy"]

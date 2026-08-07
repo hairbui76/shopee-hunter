@@ -1,0 +1,35 @@
+# Build artifacts
+/target
+**/*.rs.bk
+
+# Environment and secrets — never commit real configuration values
+.env
+.env.*
+!.env.example
+*.secret
+secrets/
+
+# Shopee session material — never commit
+browser-profile/
+*.cookies
+*.cookies.json
+session-state/
+
+# Local databases and logs
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+logs/
+*.log
+
+# Test secrets / captured unsanitized payloads
+tests/fixtures/**/unsanitized/
+research/**/captures/
+
+# Editor/OS noise
+.idea/
+.vscode/
+*.swp
+.DS_Store

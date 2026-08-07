@@ -1,0 +1,66 @@
+[workspace]
+resolver = "2"
+members = ["crates/*"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+publish = false
+rust-version = "1.94"
+
+[workspace.dependencies]
+# Internal crates
+shopee-hunter-domain = { path = "crates/domain" }
+shopee-hunter-collectors = { path = "crates/collectors" }
+shopee-hunter-client = { path = "crates/shopee-client" }
+shopee-hunter-session = { path = "crates/session" }
+shopee-hunter-scheduler = { path = "crates/scheduler" }
+shopee-hunter-claimer = { path = "crates/claimer" }
+shopee-hunter-ranking = { path = "crates/ranking" }
+shopee-hunter-notifier = { path = "crates/notifier" }
+shopee-hunter-storage = { path = "crates/storage" }
+shopee-hunter-observability = { path = "crates/observability" }
+
+# Async runtime
+tokio = { version = "1.47", features = ["rt-multi-thread", "macros", "time", "signal", "sync", "fs", "net", "process", "io-util"] }
+tokio-util = { version = "0.7", features = ["rt"] }
+futures = "0.3"
+async-trait = "0.1"
+
+# HTTP
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "json", "gzip", "cookies"] }
+axum = "0.8"
+
+# Serialization
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# Persistence
+sqlx = { version = "0.8", default-features = false, features = ["runtime-tokio-rustls", "sqlite", "postgres", "any", "migrate", "macros"] }
+
+# Errors
+thiserror = "2"
+anyhow = "1"
+
+# Telemetry
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json", "fmt"] }
+
+# Values
+rust_decimal = { version = "1", features = ["serde"] }
+uuid = { version = "1", features = ["v4", "serde"] }
+chrono = { version = "0.4", features = ["serde", "clock"], default-features = false }
+chrono-tz = "0.10"
+sha2 = "0.10"
+hex = "0.4"
+rand = "0.9"
+
+# Dev / test
+tempfile = "3"
+wiremock = "0.6"
+criterion = { version = "0.5", features = ["async_tokio"] }
+
+[profile.release]
+# Defaults first; evaluate LTO/codegen only with benchmark evidence (Phase 24).
+debug = 1

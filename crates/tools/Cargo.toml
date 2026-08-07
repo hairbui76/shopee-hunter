@@ -1,0 +1,24 @@
+[package]
+name = "shopee-hunter-tools"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[features]
+default = []
+browser = ["shopee-hunter-session/browser"]
+
+[dependencies]
+shopee-hunter-domain.workspace = true
+shopee-hunter-session.workspace = true
+shopee-hunter-client.workspace = true
+shopee-hunter-collectors.workspace = true
+shopee-hunter-storage.workspace = true
+anyhow.workspace = true
+tokio.workspace = true
+serde_json.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+reqwest.workspace = true
+chrono.workspace = true

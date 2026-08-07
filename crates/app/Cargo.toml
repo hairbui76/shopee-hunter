@@ -1,0 +1,38 @@
+[package]
+name = "shopee-hunter-app"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[[bin]]
+name = "shopee-hunter-app"
+path = "src/main.rs"
+
+[dependencies]
+shopee-hunter-domain.workspace = true
+shopee-hunter-collectors.workspace = true
+shopee-hunter-client.workspace = true
+shopee-hunter-session.workspace = true
+shopee-hunter-scheduler.workspace = true
+shopee-hunter-claimer.workspace = true
+shopee-hunter-ranking.workspace = true
+shopee-hunter-notifier.workspace = true
+shopee-hunter-storage.workspace = true
+shopee-hunter-observability.workspace = true
+tokio.workspace = true
+tokio-util.workspace = true
+axum.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+anyhow.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+chrono.workspace = true
+uuid.workspace = true
+rust_decimal.workspace = true
+reqwest.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
+wiremock.workspace = true
