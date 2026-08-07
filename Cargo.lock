@@ -2613,6 +2613,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "shopee-hunter-reliability-tests"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "chrono",
+ "reqwest",
+ "rust_decimal",
+ "serde_json",
+ "shopee-hunter-claimer",
+ "shopee-hunter-collectors",
+ "shopee-hunter-domain",
+ "shopee-hunter-observability",
+ "shopee-hunter-scheduler",
+ "shopee-hunter-session",
+ "shopee-hunter-storage",
+ "tempfile",
+ "tokio",
+ "uuid",
+ "wiremock",
+]
+
+[[package]]
 name = "shopee-hunter-scheduler"
 version = "0.1.0"
 dependencies = [
