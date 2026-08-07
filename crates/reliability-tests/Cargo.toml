@@ -21,3 +21,10 @@ wiremock.workspace = true
 serde_json.workspace = true
 chrono.workspace = true
 rust_decimal.workspace = true
+# Needed to drive the real crates from tests: `reqwest` builds the shared client
+# ExternalFeedCollector takes, `async-trait` implements the ClaimExecutor and
+# VoucherCollector traits, `uuid` names the id types crossing the storage and
+# event APIs. All three are already workspace dependencies.
+reqwest.workspace = true
+async-trait.workspace = true
+uuid.workspace = true
