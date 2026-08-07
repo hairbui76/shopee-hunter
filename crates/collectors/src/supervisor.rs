@@ -76,9 +76,19 @@ impl CollectorSupervisor {
 
         match result {
             Ok(collection) => {
-                let outcome = ingest_candidates(&self.db, &collection.candidates, now)
-                    .await
-                    .map_err(|e| CollectorError::Config(format!("persistence error: {e}")))?;
+                let outcome = match ingest_candidates(&self.db, &collection.candidates, now).await {
+                    Ok(outcome) => outcome,
+                    Err(e) => {
+                        // A persistence failure must mark the source unhealthy —
+                        // otherwise a DB outage leaves source health reading
+                        // Healthy with a stale last_success (Phase 26 finding).
+                        let err = CollectorError::Config(format!("persistence error: {e}"));
+                        source.health.record_failure(now, &err);
+                        self.metrics
+                            .inc("collector_failures_total", &[("source", &name)]);
+                        return Err(err);
+                    }
+                };
 
                 let partial = collection.is_partial() || !outcome.rejected.is_empty();
                 source.health.record_success(
