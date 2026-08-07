@@ -2208,6 +2208,7 @@ dependencies = [
  "thiserror 2.0.19",
  "tokio",
  "tokio-util",
+ "tower",
  "tracing",
  "uuid",
  "wiremock",
@@ -2318,10 +2319,12 @@ name = "shopee-hunter-observability"
 version = "0.1.0"
 dependencies = [
  "chrono",
+ "rand 0.9.5",
  "serde",
  "serde_json",
  "thiserror 2.0.19",
  "tokio",
+ "tokio-util",
  "tracing",
  "tracing-subscriber",
 ]

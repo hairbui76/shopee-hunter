@@ -58,6 +58,7 @@ rand = "0.9"
 
 # Dev / test
 tempfile = "3"
+tower = { version = "0.5", features = ["util"] }
 wiremock = "0.6"
 criterion = { version = "0.5", features = ["async_tokio"] }
 

@@ -13,3 +13,5 @@ serde_json.workspace = true
 thiserror.workspace = true
 chrono.workspace = true
 tokio.workspace = true
+tokio-util.workspace = true
+rand.workspace = true

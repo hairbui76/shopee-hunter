@@ -1,0 +1,39 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    image: shopee-hunter
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: postgres://shopee_hunter:${POSTGRES_PASSWORD:?set in .env}@postgres:5432/shopee_hunter
+      HEALTHCHECK_BIND_ADDR: 127.0.0.1:8686
+    volumes:
+      - browser-profile:/var/lib/shopee-hunter/browser-profile
+      - session-data:/var/lib/shopee-hunter/session
+    depends_on:
+      postgres:
+        condition: service_healthy
+    # Health/admin API stays inside the container network; never publish it.
+
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: shopee_hunter
+      POSTGRES_USER: shopee_hunter
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set in .env}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U shopee_hunter -d shopee_hunter"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    # No public port mapping on purpose; use `docker compose exec` for psql.
+
+volumes:
+  browser-profile:
+  session-data:
+  postgres-data:
