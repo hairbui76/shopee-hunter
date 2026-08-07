@@ -249,3 +249,77 @@ async fn outbox_dead_letters_after_max_attempts() {
         1
     );
 }
+
+#[tokio::test]
+async fn concurrent_ingestion_of_same_identity_is_race_safe() {
+    // Shared-cache in-memory DB so multiple pool connections see one database,
+    // exercising the write-first ON CONFLICT upsert under contention.
+    let db = Database::connect("sqlite:file:race?mode=memory&cache=shared", 8)
+        .await
+        .unwrap();
+    // Keep one connection alive for the whole test so the shared in-memory DB
+    // is not dropped between operations.
+    let keepalive = Database::connect("sqlite:file:race?mode=memory&cache=shared", 1)
+        .await
+        .unwrap();
+
+    let now = Utc::now();
+    let mut handles = Vec::new();
+    for _ in 0..8 {
+        let db = db.clone();
+        let c = candidate("RACE"); // identical promotion_id identity
+        handles.push(tokio::spawn(async move {
+            VoucherRepository::new(&db).upsert_candidate(&c, now).await
+        }));
+    }
+    let mut created = 0;
+    for h in handles {
+        match h.await.unwrap().unwrap() {
+            UpsertOutcome::Created { .. } => created += 1,
+            UpsertOutcome::Unchanged { .. } => {}
+            other => panic!("unexpected {other:?}"),
+        }
+    }
+    // Exactly one creator; everyone else deduped. No unhandled unique violation.
+    assert_eq!(created, 1);
+    assert_eq!(VoucherRepository::new(&db).count().await.unwrap(), 1);
+    keepalive.close().await;
+}
+
+#[tokio::test]
+async fn schedule_ordering_is_chronological_as_text() {
+    let (db, _dir) = temp_db().await;
+    let vid = VoucherRepository::new(&db)
+        .upsert_candidate(&candidate("ORD"), Utc::now())
+        .await
+        .unwrap()
+        .voucher_id();
+    let sched = ScheduleRepository::new(&db);
+    let base = Utc.with_ymd_and_hms(2026, 8, 10, 0, 0, 0).unwrap();
+
+    // A whole-second time (renders "...00Z") must sort BEFORE a sub-second one
+    // ("...000123Z"): with variable-width RFC3339 the 'Z' vs '.' ordering would
+    // invert this. Distinct actions so both jobs coexist.
+    sched
+        .upsert(
+            vid,
+            ScheduleAction::ClaimVoucher,
+            base + Duration::microseconds(123),
+            base,
+            Utc::now(),
+        )
+        .await
+        .unwrap();
+    sched
+        .upsert(vid, ScheduleAction::NotifyUpcoming, base, base, Utc::now())
+        .await
+        .unwrap();
+
+    let due = sched
+        .due_for_preflight(base + Duration::hours(1))
+        .await
+        .unwrap();
+    // Ordered by execute_at ASC: whole-second (NotifyUpcoming) first.
+    assert_eq!(due[0].action, ScheduleAction::NotifyUpcoming);
+    assert_eq!(due[1].action, ScheduleAction::ClaimVoucher);
+}

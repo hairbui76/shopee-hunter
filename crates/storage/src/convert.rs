@@ -2,14 +2,21 @@
 
 use std::str::FromStr;
 
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, SecondsFormat, Utc};
 use rust_decimal::Decimal;
 use uuid::Uuid;
 
 use crate::error::StorageError;
 
+/// Serialize a UTC timestamp as RFC3339 with a FIXED microsecond width.
+///
+/// The schema compares and orders timestamps as TEXT (`execute_at < $1`,
+/// `ORDER BY execute_at`). `to_rfc3339()` emits a variable fractional width,
+/// which breaks lexicographic == chronological ordering (`Z` > `.`), so a
+/// fixed-width microsecond form is required for the scheduler to fire in the
+/// right order.
 pub fn ts_to_str(t: DateTime<Utc>) -> String {
-    t.to_rfc3339()
+    t.to_rfc3339_opts(SecondsFormat::Micros, true)
 }
 
 pub fn opt_ts_to_str(t: Option<DateTime<Utc>>) -> Option<String> {

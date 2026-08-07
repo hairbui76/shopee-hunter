@@ -59,47 +59,38 @@ impl<'a> VoucherRepository<'a> {
 
         let mut tx = self.db.pool().begin().await?;
 
-        let existing = sqlx::query("SELECT id, version_hash FROM vouchers WHERE identity_key = ?")
-            .bind(&identity.key)
-            .fetch_optional(&mut *tx)
-            .await?;
+        // Write-first: take the write lock up front (honours SQLite busy_timeout
+        // and avoids a deferred read->write upgrade failing with BUSY_SNAPSHOT)
+        // and make ingestion race-safe. On a lost race the conflicting insert
+        // is a no-op and the SELECT below is authoritative.
+        let fresh = Voucher::from_candidate(candidate, now);
+        insert_voucher_on_conflict_nothing(&mut tx, &fresh).await?;
 
-        let outcome = match existing {
-            None => {
-                let voucher = Voucher::from_candidate(candidate, now);
-                insert_voucher(&mut tx, &voucher).await?;
-                insert_version(
-                    &mut tx,
-                    voucher.id,
-                    &version_hash,
-                    &["created".to_string()],
-                    now,
-                )
+        let row = sqlx::query("SELECT id, version_hash FROM vouchers WHERE identity_key = $1")
+            .bind(&identity.key)
+            .fetch_one(&mut *tx)
+            .await?;
+        let id = str_to_uuid(row.get::<String, _>("id").as_str(), "vouchers.id")?;
+        let stored_version: String = row.get("version_hash");
+
+        let outcome = if id == fresh.id {
+            // We won the insert.
+            insert_version(&mut tx, id, &version_hash, &["created".to_string()], now).await?;
+            UpsertOutcome::Created { voucher_id: id }
+        } else if stored_version == version_hash {
+            sqlx::query("UPDATE vouchers SET last_seen_at = $1 WHERE id = $2")
+                .bind(ts_to_str(now))
+                .bind(uuid_to_str(id))
+                .execute(&mut *tx)
                 .await?;
-                UpsertOutcome::Created {
-                    voucher_id: voucher.id,
-                }
-            }
-            Some(row) => {
-                let id = str_to_uuid(row.get::<String, _>("id").as_str(), "vouchers.id")?;
-                let old_version: String = row.get("version_hash");
-                if old_version == version_hash {
-                    sqlx::query("UPDATE vouchers SET last_seen_at = ? WHERE id = ?")
-                        .bind(ts_to_str(now))
-                        .bind(uuid_to_str(id))
-                        .execute(&mut *tx)
-                        .await?;
-                    UpsertOutcome::Unchanged { voucher_id: id }
-                } else {
-                    let changed = changed_fields(&mut tx, id, candidate).await?;
-                    update_voucher_fields(&mut tx, id, candidate, &version_hash, &raw_hash, now)
-                        .await?;
-                    insert_version(&mut tx, id, &version_hash, &changed, now).await?;
-                    UpsertOutcome::Updated {
-                        voucher_id: id,
-                        changed_fields: changed,
-                    }
-                }
+            UpsertOutcome::Unchanged { voucher_id: id }
+        } else {
+            let changed = changed_fields(&mut tx, id, candidate).await?;
+            update_voucher_fields(&mut tx, id, candidate, &version_hash, &raw_hash, now).await?;
+            insert_version(&mut tx, id, &version_hash, &changed, now).await?;
+            UpsertOutcome::Updated {
+                voucher_id: id,
+                changed_fields: changed,
             }
         };
 
@@ -109,7 +100,7 @@ impl<'a> VoucherRepository<'a> {
             "INSERT INTO voucher_observations
                 (id, voucher_id, source, source_key, observed_at, source_updated_at,
                  raw_hash, normalized_hash, raw_payload, parser_version)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
              ON CONFLICT(source, source_key, normalized_hash) DO NOTHING",
         )
         .bind(uuid_to_str(obs_id))
@@ -130,7 +121,7 @@ impl<'a> VoucherRepository<'a> {
     }
 
     pub async fn get(&self, id: Uuid) -> Result<Option<Voucher>, StorageError> {
-        let row = sqlx::query("SELECT * FROM vouchers WHERE id = ?")
+        let row = sqlx::query("SELECT * FROM vouchers WHERE id = $1")
             .bind(uuid_to_str(id))
             .fetch_optional(self.db.pool())
             .await?;
@@ -138,7 +129,7 @@ impl<'a> VoucherRepository<'a> {
     }
 
     pub async fn find_by_identity(&self, key: &str) -> Result<Option<Voucher>, StorageError> {
-        let row = sqlx::query("SELECT * FROM vouchers WHERE identity_key = ?")
+        let row = sqlx::query("SELECT * FROM vouchers WHERE identity_key = $1")
             .bind(key)
             .fetch_optional(self.db.pool())
             .await?;
@@ -153,7 +144,7 @@ impl<'a> VoucherRepository<'a> {
     }
 
     pub async fn set_status(&self, id: Uuid, status: VoucherStatus) -> Result<(), StorageError> {
-        sqlx::query("UPDATE vouchers SET status = ? WHERE id = ?")
+        sqlx::query("UPDATE vouchers SET status = $1 WHERE id = $2")
             .bind(status.as_str())
             .bind(uuid_to_str(id))
             .execute(self.db.pool())
@@ -164,7 +155,10 @@ impl<'a> VoucherRepository<'a> {
 
 type Tx<'t> = sqlx::Transaction<'t, sqlx::Any>;
 
-async fn insert_voucher(tx: &mut Tx<'_>, v: &Voucher) -> Result<(), StorageError> {
+async fn insert_voucher_on_conflict_nothing(
+    tx: &mut Tx<'_>,
+    v: &Voucher,
+) -> Result<(), StorageError> {
     sqlx::query(
         "INSERT INTO vouchers
             (id, identity_key, identity_basis, source, source_key, code, promotion_id,
@@ -172,7 +166,8 @@ async fn insert_voucher(tx: &mut Tx<'_>, v: &Voucher) -> Result<(), StorageError
              discount_percent, max_discount, min_spend, start_at, end_at, scope,
              payment_method, landing_url, status, first_seen_at, last_seen_at,
              version_hash, raw_hash)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26)
+         ON CONFLICT(identity_key) DO NOTHING",
     )
     .bind(uuid_to_str(v.id))
     .bind(&v.identity.key)
@@ -219,11 +214,11 @@ async fn update_voucher_fields(
 ) -> Result<(), StorageError> {
     sqlx::query(
         "UPDATE vouchers SET
-            code = ?, promotion_id = ?, signature = ?, title = ?, description = ?,
-            voucher_type = ?, discount_type = ?, discount_amount = ?, discount_percent = ?,
-            max_discount = ?, min_spend = ?, start_at = ?, end_at = ?, scope = ?,
-            payment_method = ?, landing_url = ?, last_seen_at = ?, version_hash = ?, raw_hash = ?
-         WHERE id = ?",
+            code = $1, promotion_id = $2, signature = $3, title = $4, description = $5,
+            voucher_type = $6, discount_type = $7, discount_amount = $8, discount_percent = $9,
+            max_discount = $10, min_spend = $11, start_at = $12, end_at = $13, scope = $14,
+            payment_method = $15, landing_url = $16, last_seen_at = $17, version_hash = $18, raw_hash = $19
+         WHERE id = $20",
     )
     .bind(&c.code)
     .bind(&c.promotion_id)
@@ -263,7 +258,7 @@ async fn insert_version(
 ) -> Result<(), StorageError> {
     sqlx::query(
         "INSERT INTO voucher_versions (id, voucher_id, version_hash, changed_fields, created_at)
-         VALUES (?, ?, ?, ?, ?)
+         VALUES ($1, $2, $3, $4, $5)
          ON CONFLICT(voucher_id, version_hash) DO NOTHING",
     )
     .bind(uuid_to_str(Uuid::new_v4()))
@@ -282,7 +277,7 @@ async fn changed_fields(
     id: Uuid,
     c: &VoucherCandidate,
 ) -> Result<Vec<String>, StorageError> {
-    let row = sqlx::query("SELECT * FROM vouchers WHERE id = ?")
+    let row = sqlx::query("SELECT * FROM vouchers WHERE id = $1")
         .bind(uuid_to_str(id))
         .fetch_one(&mut **tx)
         .await?;

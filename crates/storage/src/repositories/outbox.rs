@@ -62,7 +62,7 @@ impl<'a> OutboxRepository<'a> {
             "INSERT INTO notification_outbox
                 (id, idempotency_key, event_kind, payload, status, attempt_count,
                  created_at, updated_at, next_attempt_at)
-             VALUES (?, ?, ?, ?, 'PENDING', 0, ?, ?, ?)
+             VALUES ($1, $2, $3, $4, 'PENDING', 0, $5, $6, $7)
              ON CONFLICT(idempotency_key) DO NOTHING",
         )
         .bind(uuid_to_str(id))
@@ -85,8 +85,8 @@ impl<'a> OutboxRepository<'a> {
     ) -> Result<Vec<OutboxRow>, StorageError> {
         let rows = sqlx::query(
             "SELECT * FROM notification_outbox
-             WHERE status = 'PENDING' AND next_attempt_at <= ?
-             ORDER BY created_at ASC LIMIT ?",
+             WHERE status = 'PENDING' AND next_attempt_at <= $1
+             ORDER BY created_at ASC LIMIT $2",
         )
         .bind(ts_to_str(now))
         .bind(limit)
@@ -97,7 +97,7 @@ impl<'a> OutboxRepository<'a> {
 
     pub async fn mark_delivered(&self, id: Uuid, now: DateTime<Utc>) -> Result<(), StorageError> {
         sqlx::query(
-            "UPDATE notification_outbox SET status = 'DELIVERED', updated_at = ? WHERE id = ?",
+            "UPDATE notification_outbox SET status = 'DELIVERED', updated_at = $1 WHERE id = $2",
         )
         .bind(ts_to_str(now))
         .bind(uuid_to_str(id))
@@ -118,9 +118,9 @@ impl<'a> OutboxRepository<'a> {
         sqlx::query(
             "UPDATE notification_outbox SET
                 attempt_count = attempt_count + 1,
-                status = CASE WHEN attempt_count + 1 >= ? THEN 'DEAD_LETTERED' ELSE 'PENDING' END,
-                last_error = ?, next_attempt_at = ?, updated_at = ?
-             WHERE id = ?",
+                status = CASE WHEN attempt_count + 1 >= $1 THEN 'DEAD_LETTERED' ELSE 'PENDING' END,
+                last_error = $2, next_attempt_at = $3, updated_at = $4
+             WHERE id = $5",
         )
         .bind(max_attempts)
         .bind(error)
@@ -133,7 +133,7 @@ impl<'a> OutboxRepository<'a> {
     }
 
     pub async fn count_with_status(&self, status: OutboxStatus) -> Result<i64, StorageError> {
-        let row = sqlx::query("SELECT COUNT(*) AS n FROM notification_outbox WHERE status = ?")
+        let row = sqlx::query("SELECT COUNT(*) AS n FROM notification_outbox WHERE status = $1")
             .bind(status.as_str())
             .fetch_one(self.db.pool())
             .await?;

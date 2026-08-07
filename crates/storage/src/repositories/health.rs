@@ -27,7 +27,7 @@ impl<'a> HealthRepository<'a> {
     ) -> Result<(), StorageError> {
         sqlx::query(
             "INSERT INTO service_health_events (id, service, from_state, to_state, reason, created_at)
-             VALUES (?, ?, ?, ?, ?, ?)",
+             VALUES ($1, $2, $3, $4, $5, $6)",
         )
         .bind(uuid_to_str(Uuid::new_v4()))
         .bind(service)

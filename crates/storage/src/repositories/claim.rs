@@ -45,7 +45,7 @@ impl<'a> ClaimRepository<'a> {
         sqlx::query(
             "INSERT INTO claim_attempts
                 (id, voucher_id, schedule_job_id, started_at, retry_index)
-             VALUES (?, ?, ?, ?, ?)",
+             VALUES ($1, $2, $3, $4, $5)",
         )
         .bind(uuid_to_str(id))
         .bind(uuid_to_str(voucher_id))
@@ -70,8 +70,8 @@ impl<'a> ClaimRepository<'a> {
         completed_at: DateTime<Utc>,
     ) -> Result<(), StorageError> {
         sqlx::query(
-            "UPDATE claim_attempts SET completed_at = ?, result_class = ?, upstream_status = ?,
-                latency_ms = ?, request_version = ?, diagnostic_code = ? WHERE id = ?",
+            "UPDATE claim_attempts SET completed_at = $1, result_class = $2, upstream_status = $3,
+                latency_ms = $4, request_version = $5, diagnostic_code = $6 WHERE id = $7",
         )
         .bind(ts_to_str(completed_at))
         .bind(result_class.as_str())
@@ -90,7 +90,7 @@ impl<'a> ClaimRepository<'a> {
     pub async fn has_successful_attempt(&self, voucher_id: Uuid) -> Result<bool, StorageError> {
         let row = sqlx::query(
             "SELECT COUNT(*) AS n FROM claim_attempts
-             WHERE voucher_id = ? AND result_class IN ('SUCCESS','ALREADY_SAVED')",
+             WHERE voucher_id = $1 AND result_class IN ('SUCCESS','ALREADY_SAVED')",
         )
         .bind(uuid_to_str(voucher_id))
         .fetch_one(self.db.pool())
@@ -103,7 +103,7 @@ impl<'a> ClaimRepository<'a> {
         voucher_id: Uuid,
     ) -> Result<Vec<ClaimAttemptRecord>, StorageError> {
         let rows = sqlx::query(
-            "SELECT * FROM claim_attempts WHERE voucher_id = ? ORDER BY started_at ASC",
+            "SELECT * FROM claim_attempts WHERE voucher_id = $1 ORDER BY started_at ASC",
         )
         .bind(uuid_to_str(voucher_id))
         .fetch_all(self.db.pool())

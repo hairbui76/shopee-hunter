@@ -49,7 +49,7 @@ impl<'a> ScheduleRepository<'a> {
             "INSERT INTO schedule_jobs
                 (id, voucher_id, action, execute_at, preflight_at, status,
                  scheduler_version, attempt_count, created_at, updated_at)
-             VALUES (?, ?, ?, ?, ?, 'PENDING', 1, 0, ?, ?)
+             VALUES ($1, $2, $3, $4, $5, 'PENDING', 1, 0, $6, $7)
              ON CONFLICT(voucher_id, action) DO UPDATE SET
                 execute_at = excluded.execute_at,
                 preflight_at = excluded.preflight_at,
@@ -66,7 +66,7 @@ impl<'a> ScheduleRepository<'a> {
         .await?;
 
         // Return the actual id (existing row keeps its original id).
-        let row = sqlx::query("SELECT id FROM schedule_jobs WHERE voucher_id = ? AND action = ?")
+        let row = sqlx::query("SELECT id FROM schedule_jobs WHERE voucher_id = $1 AND action = $2")
             .bind(uuid_to_str(voucher_id))
             .bind(action.as_str())
             .fetch_one(self.db.pool())
@@ -92,7 +92,7 @@ impl<'a> ScheduleRepository<'a> {
         at: DateTime<Utc>,
     ) -> Result<Vec<ScheduleJobRecord>, StorageError> {
         let rows = sqlx::query(
-            "SELECT * FROM schedule_jobs WHERE status = 'PENDING' AND preflight_at <= ?
+            "SELECT * FROM schedule_jobs WHERE status = 'PENDING' AND preflight_at <= $1
              ORDER BY execute_at ASC",
         )
         .bind(ts_to_str(at))
@@ -109,7 +109,7 @@ impl<'a> ScheduleRepository<'a> {
         now: DateTime<Utc>,
     ) -> Result<(), StorageError> {
         sqlx::query(
-            "UPDATE schedule_jobs SET status = ?, last_result = ?, updated_at = ? WHERE id = ?",
+            "UPDATE schedule_jobs SET status = $1, last_result = $2, updated_at = $3 WHERE id = $4",
         )
         .bind(status.as_str())
         .bind(last_result)
@@ -129,8 +129,8 @@ impl<'a> ScheduleRepository<'a> {
     ) -> Result<bool, StorageError> {
         let res = sqlx::query(
             "UPDATE schedule_jobs SET status = 'RUNNING', attempt_count = attempt_count + 1,
-                updated_at = ?
-             WHERE id = ? AND status IN ('PENDING','READY')",
+                updated_at = $1
+             WHERE id = $2 AND status IN ('PENDING','READY')",
         )
         .bind(ts_to_str(now))
         .bind(uuid_to_str(id))
@@ -146,8 +146,8 @@ impl<'a> ScheduleRepository<'a> {
         now: DateTime<Utc>,
     ) -> Result<u64, StorageError> {
         let res = sqlx::query(
-            "UPDATE schedule_jobs SET status = 'STALE', updated_at = ?
-             WHERE status IN ('PENDING','READY') AND execute_at < ?",
+            "UPDATE schedule_jobs SET status = 'STALE', updated_at = $1
+             WHERE status IN ('PENDING','READY') AND execute_at < $2",
         )
         .bind(ts_to_str(now))
         .bind(ts_to_str(cutoff))
@@ -157,7 +157,7 @@ impl<'a> ScheduleRepository<'a> {
     }
 
     pub async fn get(&self, id: Uuid) -> Result<Option<ScheduleJobRecord>, StorageError> {
-        let row = sqlx::query("SELECT * FROM schedule_jobs WHERE id = ?")
+        let row = sqlx::query("SELECT * FROM schedule_jobs WHERE id = $1")
             .bind(uuid_to_str(id))
             .fetch_optional(self.db.pool())
             .await?;

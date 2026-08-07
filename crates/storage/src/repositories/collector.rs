@@ -57,7 +57,7 @@ impl<'a> CollectorRunRepository<'a> {
             "INSERT INTO collector_runs
                 (id, source, started_at, finished_at, latency_ms, candidate_count,
                  new_count, updated_count, parse_errors, outcome, detail)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)",
         )
         .bind(uuid_to_str(id))
         .bind(&run.source)
@@ -81,7 +81,7 @@ impl<'a> CollectorRunRepository<'a> {
     ) -> Result<Option<DateTime<Utc>>, StorageError> {
         let row = sqlx::query(
             "SELECT finished_at FROM collector_runs
-             WHERE source = ? AND outcome = 'SUCCESS' AND finished_at IS NOT NULL
+             WHERE source = $1 AND outcome = 'SUCCESS' AND finished_at IS NOT NULL
              ORDER BY finished_at DESC LIMIT 1",
         )
         .bind(source)
@@ -97,7 +97,7 @@ impl<'a> CollectorRunRepository<'a> {
     }
 
     pub async fn count_for(&self, source: &str) -> Result<i64, StorageError> {
-        let row = sqlx::query("SELECT COUNT(*) AS n FROM collector_runs WHERE source = ?")
+        let row = sqlx::query("SELECT COUNT(*) AS n FROM collector_runs WHERE source = $1")
             .bind(source)
             .fetch_one(self.db.pool())
             .await?;
