@@ -21,6 +21,8 @@ shopee-hunter-ranking = { path = "crates/ranking" }
 shopee-hunter-notifier = { path = "crates/notifier" }
 shopee-hunter-storage = { path = "crates/storage" }
 shopee-hunter-observability = { path = "crates/observability" }
+shopee-hunter-planning = { path = "crates/planning" }
+shopee-hunter-analytics = { path = "crates/analytics" }
 
 # Async runtime
 tokio = { version = "1.47", features = ["rt-multi-thread", "macros", "time", "signal", "sync", "fs", "net", "process", "io-util"] }
