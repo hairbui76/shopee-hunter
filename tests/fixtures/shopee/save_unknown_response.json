@@ -1,0 +1,18 @@
+{
+  "_meta": {
+    "source": "shopee.vn POST /api/v2/voucher_wallet/save_voucher",
+    "capture_date": null,
+    "origin": "synthetic",
+    "purpose": "Schema drift. Must stay explicit and alertable, never guessed.",
+    "parser_version": "shopee-client-classify/1",
+    "redactions_applied": [
+      "no session material present: body authored from documented shapes"
+    ],
+    "assumption": "By construction: no rule matches, diagnostics are preserved."
+  },
+  "kind": "save",
+  "name": "save_unknown_response",
+  "http_status": 200,
+  "expected_class": "UNKNOWN_RESPONSE",
+  "body": "{\"error\": 123456, \"error_msg\": \"unrecognised upstream state\"}"
+}

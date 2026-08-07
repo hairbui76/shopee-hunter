@@ -1,0 +1,18 @@
+{
+  "_meta": {
+    "source": "shopee.vn GET /api/v4/account/basic/get_account_info",
+    "capture_date": null,
+    "origin": "synthetic",
+    "purpose": "Challenge on the probe path; claims pause and the owner is notified.",
+    "parser_version": "shopee-client-classify/1",
+    "redactions_applied": [
+      "no session material present: body authored from documented shapes"
+    ],
+    "assumption": "UNSTABLE: 'xác thực' == authenticate/verify."
+  },
+  "kind": "probe",
+  "name": "probe_verification_required",
+  "http_status": 200,
+  "expected_class": "VERIFICATION_REQUIRED",
+  "body": "{\"error\": 1, \"error_msg\": \"Vui lòng xác thực tài khoản\"}"
+}

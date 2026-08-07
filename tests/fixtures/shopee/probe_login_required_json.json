@@ -1,0 +1,18 @@
+{
+  "_meta": {
+    "source": "shopee.vn GET /api/v4/account/basic/get_account_info",
+    "capture_date": null,
+    "origin": "synthetic",
+    "purpose": "Explicit login demand inside a JSON envelope.",
+    "parser_version": "shopee-client-classify/1",
+    "redactions_applied": [
+      "no session material present: body authored from documented shapes"
+    ],
+    "assumption": "UNSTABLE: message wording."
+  },
+  "kind": "probe",
+  "name": "probe_login_required_json",
+  "http_status": 200,
+  "expected_class": "LOGIN_REQUIRED",
+  "body": "{\"error\": 1, \"error_msg\": \"please login\"}"
+}

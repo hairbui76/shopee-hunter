@@ -1,0 +1,18 @@
+{
+  "_meta": {
+    "source": "shopee.vn POST /api/v2/voucher_wallet/save_voucher",
+    "capture_date": null,
+    "origin": "synthetic",
+    "purpose": "Guard: 'does not exist' contains the already-saved needle 'exist'.",
+    "parser_version": "shopee-client-classify/1",
+    "redactions_applied": [
+      "no session material present: body authored from documented shapes"
+    ],
+    "assumption": "UNSTABLE: ordering guard in classify::SAVE_KEYWORD_RULES depends on this."
+  },
+  "kind": "save",
+  "name": "save_invalid_voucher_not_exist",
+  "http_status": 200,
+  "expected_class": "INVALID_VOUCHER",
+  "body": "{\"error\": 1, \"error_msg\": \"This voucher does not exist\"}"
+}

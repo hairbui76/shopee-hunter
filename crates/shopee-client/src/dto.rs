@@ -105,7 +105,9 @@ impl AccountInfoData {
 
     /// Whether the payload carries a non-empty username.
     pub fn has_username(&self) -> bool {
-        self.username.as_deref().is_some_and(|u| !u.trim().is_empty())
+        self.username
+            .as_deref()
+            .is_some_and(|u| !u.trim().is_empty())
     }
 
     /// Whether the payload proves an authenticated identity.
@@ -194,8 +196,8 @@ mod tests {
         assert!(!empty.is_ok_code());
 
         // Wrong types degrade to None instead of failing the envelope.
-        let odd = ShopeeEnvelope::parse(r#"{"error":{"nested":1},"error_msg":["a"]}"#)
-            .expect("parses");
+        let odd =
+            ShopeeEnvelope::parse(r#"{"error":{"nested":1},"error_msg":["a"]}"#).expect("parses");
         assert_eq!(odd.effective_code(), None);
         assert_eq!(odd.message(), None);
     }

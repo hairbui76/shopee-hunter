@@ -1,0 +1,18 @@
+{
+  "_meta": {
+    "source": "shopee.vn GET /api/v4/account/basic/get_account_info",
+    "capture_date": null,
+    "origin": "synthetic",
+    "purpose": "Success code with no account identity: never assume healthy.",
+    "parser_version": "shopee-client-classify/1",
+    "redactions_applied": [
+      "no session material present: body authored from documented shapes"
+    ],
+    "assumption": "UNSTABLE: guards against a schema change silently reading as healthy."
+  },
+  "kind": "probe",
+  "name": "probe_unknown_schema",
+  "http_status": 200,
+  "expected_class": "UNKNOWN",
+  "body": "{\"error\": 0, \"data\": {}}"
+}

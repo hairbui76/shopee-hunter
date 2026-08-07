@@ -1,0 +1,18 @@
+{
+  "_meta": {
+    "source": "shopee.vn POST /api/v2/voucher_wallet/save_voucher",
+    "capture_date": null,
+    "origin": "synthetic",
+    "purpose": "HTML where JSON was expected: Shopee served the login page on a 200.",
+    "parser_version": "shopee-client-classify/1",
+    "redactions_applied": [
+      "no session material present: body authored from documented shapes"
+    ],
+    "assumption": "UNSTABLE: login redirect renders HTML with a /buyer/login link."
+  },
+  "kind": "save",
+  "name": "save_session_expired_login_page",
+  "http_status": 200,
+  "expected_class": "SESSION_EXPIRED",
+  "body": "<!doctype html>\n<html lang=\"vi\">\n<head><title>Shopee</title></head>\n<body>\n  <div id=\"main\">\n    <a href=\"/buyer/login\">Dang nhap</a>\n    <p>Vui long dang nhap de tiep tuc</p>\n  </div>\n</body>\n</html>\n"
+}

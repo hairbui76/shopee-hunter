@@ -1,0 +1,18 @@
+{
+  "_meta": {
+    "source": "shopee.vn POST /api/v2/voucher_wallet/save_voucher",
+    "capture_date": null,
+    "origin": "synthetic",
+    "purpose": "Positive save. The only body shape allowed to classify as SUCCESS.",
+    "parser_version": "shopee-client-classify/1",
+    "redactions_applied": [
+      "voucher_code value replaced with REDACTED"
+    ],
+    "assumption": "UNSTABLE: error==0 means the voucher is now in the wallet."
+  },
+  "kind": "save",
+  "name": "save_success",
+  "http_status": 200,
+  "expected_class": "SUCCESS",
+  "body": "{\"error\": 0, \"error_msg\": \"\", \"data\": {\"voucher\": {\"voucher_code\": \"REDACTED\"}}}"
+}

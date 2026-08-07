@@ -1,0 +1,18 @@
+{
+  "_meta": {
+    "source": "shopee.vn POST /api/v2/voucher_wallet/save_voucher",
+    "capture_date": null,
+    "origin": "synthetic",
+    "purpose": "Voucher not yet claimable; the claimer reschedules at start time.",
+    "parser_version": "shopee-client-classify/1",
+    "redactions_applied": [
+      "no session material present: body authored from documented shapes"
+    ],
+    "assumption": "UNSTABLE: 'chưa bắt đầu' == not started."
+  },
+  "kind": "save",
+  "name": "save_not_active",
+  "http_status": 200,
+  "expected_class": "NOT_ACTIVE",
+  "body": "{\"error\": 1, \"error_msg\": \"Chương trình chưa bắt đầu\"}"
+}

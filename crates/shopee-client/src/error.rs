@@ -130,14 +130,10 @@ impl ClientError {
 ///
 /// The source error is deliberately **not** retained: its `Display` embeds the
 /// request URL, and callers only ever need the class plus a short description.
-pub fn classify_reqwest_error(err: &reqwest::Error) -> ClientError {
-    let detail = sanitize_reqwest_detail(err);
-
+/// Ownership is taken because stripping the URL consumes the error.
+pub fn classify_reqwest_error(err: reqwest::Error) -> ClientError {
     if err.is_timeout() {
         return ClientError::Timeout;
-    }
-    if err.is_connect() {
-        return ClientError::Connect { detail };
     }
     if let Some(status) = err.status() {
         let status = status.as_u16();
@@ -146,14 +142,22 @@ pub fn classify_reqwest_error(err: &reqwest::Error) -> ClientError {
         }
         return ClientError::Http { status };
     }
-    if err.is_decode() || err.is_body() {
-        return ClientError::MalformedPayload { detail };
+
+    let is_connect = err.is_connect();
+    let is_payload = err.is_decode() || err.is_body();
+    let detail = sanitize_reqwest_detail(err);
+
+    if is_connect {
+        ClientError::Connect { detail }
+    } else if is_payload {
+        ClientError::MalformedPayload { detail }
+    } else {
+        ClientError::Other { detail }
     }
-    ClientError::Other { detail }
 }
 
 /// Strip the URL from a `reqwest` error before it is stored or logged.
-fn sanitize_reqwest_detail(err: &reqwest::Error) -> String {
+fn sanitize_reqwest_detail(err: reqwest::Error) -> String {
     let mut text = err.without_url().to_string();
     const MAX: usize = 160;
     if text.chars().count() > MAX {
@@ -197,22 +201,14 @@ mod tests {
     fn result_class_mapping_never_claims_success() {
         for err in [
             ClientError::Timeout,
-            ClientError::Connect {
-                detail: "x".into(),
-            },
+            ClientError::Connect { detail: "x".into() },
             ClientError::Http { status: 500 },
             ClientError::Http { status: 404 },
-            ClientError::MalformedPayload {
-                detail: "x".into(),
-            },
+            ClientError::MalformedPayload { detail: "x".into() },
             ClientError::RateLimited { retry_after: None },
             ClientError::Blocked,
-            ClientError::InvalidConfig {
-                detail: "x".into(),
-            },
-            ClientError::Other {
-                detail: "x".into(),
-            },
+            ClientError::InvalidConfig { detail: "x".into() },
+            ClientError::Other { detail: "x".into() },
         ] {
             assert!(!err.as_result_class().is_success_equivalent());
             assert!(!err.kind().is_empty());
@@ -230,9 +226,15 @@ mod tests {
     #[test]
     fn retry_after_parsing_is_bounded() {
         assert_eq!(parse_retry_after(Some("5")), Some(Duration::from_secs(5)));
-        assert_eq!(parse_retry_after(Some(" 30 ")), Some(Duration::from_secs(30)));
+        assert_eq!(
+            parse_retry_after(Some(" 30 ")),
+            Some(Duration::from_secs(30))
+        );
         assert_eq!(parse_retry_after(Some("99999")), None);
-        assert_eq!(parse_retry_after(Some("Wed, 21 Oct 2015 07:28:00 GMT")), None);
+        assert_eq!(
+            parse_retry_after(Some("Wed, 21 Oct 2015 07:28:00 GMT")),
+            None
+        );
         assert_eq!(parse_retry_after(None), None);
     }
 
@@ -249,10 +251,13 @@ mod tests {
             .await
             .expect_err("connection to a closed port must fail");
 
-        let mapped = classify_reqwest_error(&err);
+        let mapped = classify_reqwest_error(err);
         let rendered = mapped.to_string();
         assert!(!rendered.contains("secret"), "error text leaked the URL");
-        assert!(!rendered.contains("127.0.0.1"), "error text leaked the host");
+        assert!(
+            !rendered.contains("127.0.0.1"),
+            "error text leaked the host"
+        );
         assert!(mapped.is_transient());
     }
 }

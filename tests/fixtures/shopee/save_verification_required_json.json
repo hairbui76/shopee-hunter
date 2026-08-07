@@ -1,0 +1,18 @@
+{
+  "_meta": {
+    "source": "shopee.vn POST /api/v2/voucher_wallet/save_voucher",
+    "capture_date": null,
+    "origin": "synthetic",
+    "purpose": "Challenge signalled inside a JSON envelope.",
+    "parser_version": "shopee-client-classify/1",
+    "redactions_applied": [
+      "no session material present: body authored from documented shapes"
+    ],
+    "assumption": "UNSTABLE: 'xác minh' == verify."
+  },
+  "kind": "save",
+  "name": "save_verification_required_json",
+  "http_status": 200,
+  "expected_class": "VERIFICATION_REQUIRED",
+  "body": "{\"error\": 1, \"error_msg\": \"Vui lòng xác minh tài khoản của bạn\"}"
+}

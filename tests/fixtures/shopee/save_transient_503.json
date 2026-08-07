@@ -1,0 +1,18 @@
+{
+  "_meta": {
+    "source": "shopee.vn POST /api/v2/voucher_wallet/save_voucher",
+    "capture_date": null,
+    "origin": "synthetic",
+    "purpose": "Edge/gateway failure. Retryable with capped backoff.",
+    "parser_version": "shopee-client-classify/1",
+    "redactions_applied": [
+      "no session material present: body authored from documented shapes"
+    ],
+    "assumption": "Stable HTTP semantics, not a Shopee assumption."
+  },
+  "kind": "save",
+  "name": "save_transient_503",
+  "http_status": 503,
+  "expected_class": "TRANSIENT_FAILURE",
+  "body": "<html>\n<head><title>503 Service Temporarily Unavailable</title></head>\n<body><center><h1>503 Service Temporarily Unavailable</h1></center></body>\n</html>\n"
+}

@@ -1,0 +1,18 @@
+{
+  "_meta": {
+    "source": "shopee.vn POST /api/v2/voucher_wallet/save_voucher",
+    "capture_date": null,
+    "origin": "synthetic",
+    "purpose": "Exhausted recognised by upstream code alone.",
+    "parser_version": "shopee-client-classify/1",
+    "redactions_applied": [
+      "no session material present: body authored from documented shapes"
+    ],
+    "assumption": "UNSTABLE ASSUMPTION: code 7 == claim quota exhausted. Verify in live smoke."
+  },
+  "kind": "save",
+  "name": "save_exhausted_code_7",
+  "http_status": 200,
+  "expected_class": "EXHAUSTED",
+  "body": "{\"error\": 7, \"error_msg\": \"Voucher da het luot\"}"
+}

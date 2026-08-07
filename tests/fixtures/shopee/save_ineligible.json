@@ -1,0 +1,18 @@
+{
+  "_meta": {
+    "source": "shopee.vn POST /api/v2/voucher_wallet/save_voucher",
+    "capture_date": null,
+    "origin": "synthetic",
+    "purpose": "Account not eligible; terminal for this account/voucher pair.",
+    "parser_version": "shopee-client-classify/1",
+    "redactions_applied": [
+      "no session material present: body authored from documented shapes"
+    ],
+    "assumption": "UNSTABLE: 'điều kiện' == eligibility condition."
+  },
+  "kind": "save",
+  "name": "save_ineligible",
+  "http_status": 200,
+  "expected_class": "INELIGIBLE",
+  "body": "{\"error\": 1, \"error_msg\": \"Bạn không đủ điều kiện sử dụng mã này\"}"
+}

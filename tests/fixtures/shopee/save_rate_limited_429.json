@@ -1,0 +1,18 @@
+{
+  "_meta": {
+    "source": "shopee.vn POST /api/v2/voucher_wallet/save_voucher",
+    "capture_date": null,
+    "origin": "synthetic",
+    "purpose": "Upstream rate limit. The live client short-circuits 429 to ClientError::RateLimited so the Retry-After hint survives; this fixture covers the pure classifier used by replay and offline analysis.",
+    "parser_version": "shopee-client-classify/1",
+    "redactions_applied": [
+      "no session material present: body authored from documented shapes"
+    ],
+    "assumption": "UNSTABLE: HTTP 429 is the reliable signal, the body is not."
+  },
+  "kind": "save",
+  "name": "save_rate_limited_429",
+  "http_status": 429,
+  "expected_class": "RATE_LIMITED",
+  "body": "{\"error\": 1, \"error_msg\": \"too many requests\"}"
+}

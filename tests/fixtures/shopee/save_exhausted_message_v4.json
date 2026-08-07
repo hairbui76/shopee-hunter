@@ -1,0 +1,18 @@
+{
+  "_meta": {
+    "source": "shopee.vn POST /api/v2/voucher_wallet/save_voucher",
+    "capture_date": null,
+    "origin": "synthetic",
+    "purpose": "Exhausted on the newer {code,msg} envelope spelling.",
+    "parser_version": "shopee-client-classify/1",
+    "redactions_applied": [
+      "no session material present: body authored from documented shapes"
+    ],
+    "assumption": "UNSTABLE: both envelope spellings observed; classifier collapses them."
+  },
+  "kind": "save",
+  "name": "save_exhausted_message_v4",
+  "http_status": 200,
+  "expected_class": "EXHAUSTED",
+  "body": "{\"code\": 1, \"msg\": \"voucher is out of stock\"}"
+}

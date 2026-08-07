@@ -238,7 +238,11 @@ mod tests {
 
     #[test]
     fn allows_plain_http_only_for_loopback_test_servers() {
-        for good in ["http://127.0.0.1:8080", "http://localhost:9", "http://[::1]"] {
+        for good in [
+            "http://127.0.0.1:8080",
+            "http://localhost:9",
+            "http://[::1]",
+        ] {
             assert!(EndpointRegistry::new(good).is_ok(), "{good} should be ok");
         }
         assert!(EndpointRegistry::new("http://10.0.0.1").is_err());

@@ -1,0 +1,19 @@
+{
+  "_meta": {
+    "source": "shopee.vn GET /api/v4/account/basic/get_account_info",
+    "capture_date": null,
+    "origin": "synthetic",
+    "purpose": "Only shape allowed to prove a healthy session.",
+    "parser_version": "shopee-client-classify/1",
+    "redactions_applied": [
+      "userid replaced with a placeholder",
+      "username replaced with redacted_user"
+    ],
+    "assumption": "UNSTABLE: presence of userid/username is the health signal."
+  },
+  "kind": "probe",
+  "name": "probe_healthy",
+  "http_status": 200,
+  "expected_class": "HEALTHY",
+  "body": "{\"error\": 0, \"error_msg\": \"\", \"data\": {\"userid\": 100000000, \"username\": \"redacted_user\"}}"
+}
