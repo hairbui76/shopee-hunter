@@ -3,16 +3,14 @@
 //! This binary only wires subsystems together: settings, telemetry, storage,
 //! workers, and the admin API. Business logic lives in the workspace crates.
 
-use shopee_hunter_app::{api, config};
+use shopee_hunter_app::{api, config, runtime};
 
 use std::sync::Arc;
 use std::time::Duration;
 
 use anyhow::Context as _;
 use chrono::Utc;
-use shopee_hunter_observability::{
-    logging, HealthRegistry, Metrics, WorkerConfig, WorkerSupervisor,
-};
+use shopee_hunter_observability::logging;
 use tokio_util::sync::CancellationToken;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -39,24 +37,14 @@ async fn run(settings: config::Settings) -> anyhow::Result<()> {
     );
 
     let cancel = CancellationToken::new();
-    let health = HealthRegistry::new();
-    let metrics = Metrics::new();
-    let mut supervisor = WorkerSupervisor::new(cancel.clone(), metrics.clone());
 
-    // Application heartbeat worker: proves supervision/health wiring end to end.
-    let heartbeat_health = health.handle("app-heartbeat");
-    let heartbeat_metrics = metrics.clone();
-    supervisor.supervise(
-        WorkerConfig::new("app-heartbeat", Duration::from_secs(30)),
-        heartbeat_health,
-        move || {
-            let metrics = heartbeat_metrics.clone();
-            async move {
-                metrics.inc("app_heartbeats_total", &[]);
-                Ok(())
-            }
-        },
-    );
+    // Initialize shared services (DB + migrations, HTTP client, metrics, health).
+    let services = runtime::Services::initialize(&settings).await?;
+    let health = services.health.clone();
+    let metrics = services.metrics.clone();
+
+    // Spawn the pipeline workers (collectors → outbox, notifier drain).
+    let supervisor = runtime::spawn_all(&settings, &services, cancel.clone())?;
 
     // Admin/health API.
     let api_state = Arc::new(api::ApiState {
