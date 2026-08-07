@@ -103,15 +103,15 @@ Write a concise statement defining:
 
 ## Tasks
 
-- [ ] Initialize Git repository.
-- [ ] Initialize a Cargo workspace and pin the stable Rust toolchain policy in `rust-toolchain.toml`.
-- [ ] Commit `Cargo.lock` because this repository builds an application.
-- [ ] Add `.gitignore` for `.env`, cookies, profiles, DB files, logs, test secrets.
-- [ ] Add pre-commit or equivalent formatting workflow.
-- [ ] Add a research README.
-- [ ] Record reference repo commit hashes.
-- [ ] Create `docs/adr/`.
-- [ ] Add ADR 0001 for modular-monolith direction.
+- [x] Initialize Git repository.
+- [x] Initialize a Cargo workspace and pin the stable Rust toolchain policy in `rust-toolchain.toml`.
+- [x] Commit `Cargo.lock` because this repository builds an application.
+- [x] Add `.gitignore` for `.env`, cookies, profiles, DB files, logs, test secrets.
+- [x] Add pre-commit or equivalent formatting workflow.
+- [x] Add a research README.
+- [x] Record reference repo commit hashes.
+- [x] Create `docs/adr/`.
+- [x] Add ADR 0001 for modular-monolith direction.
 
 ## Exit criteria
 
@@ -201,15 +201,15 @@ Provide common behavior for:
 
 ## Tasks
 
-- [ ] Add Cargo workspace crate structure and dependency boundaries.
-- [ ] Add typed configuration.
-- [ ] Add structured logging.
-- [ ] Add redaction helpers.
-- [ ] Add graceful shutdown handling.
-- [ ] Add common worker base/supervisor.
-- [ ] Add unit test setup.
-- [ ] Add CI for lint/type/test.
-- [ ] Add Dockerfile build.
+- [x] Add Cargo workspace crate structure and dependency boundaries.
+- [x] Add typed configuration.
+- [x] Add structured logging.
+- [x] Add redaction helpers.
+- [x] Add graceful shutdown handling.
+- [x] Add common worker base/supervisor.
+- [x] Add unit test setup.
+- [x] Add CI for lint/type/test.
+- [x] Add Dockerfile build.
 
 ## Exit criteria
 
@@ -274,12 +274,12 @@ Validate:
 
 ## Tasks
 
-- [ ] Define enums/value objects.
-- [ ] Define canonical strongly typed Rust `Voucher` struct and supporting enums/newtypes.
-- [ ] Implement identity function.
-- [ ] Implement normalized hash.
-- [ ] Add edge-case tests.
-- [ ] Document identity rules.
+- [x] Define enums/value objects.
+- [x] Define canonical strongly typed Rust `Voucher` struct and supporting enums/newtypes.
+- [x] Implement identity function.
+- [x] Implement normalized hash.
+- [x] Add edge-case tests.
+- [x] Document identity rules.
 
 ## Exit criteria
 
@@ -345,14 +345,14 @@ Use SQLx migrations from the beginning of production DB use. Keep migration file
 
 ## Tasks
 
-- [ ] SQLx storage setup with explicit SQLite and PostgreSQL feature selection.
-- [ ] SQLite local config.
-- [ ] PostgreSQL config.
-- [ ] SQLx migration directory and migration runner initialization.
-- [ ] Initial schema migration.
-- [ ] Unique constraints for identity.
-- [ ] Transaction tests.
-- [ ] Restart persistence tests.
+- [x] SQLx storage setup with explicit SQLite and PostgreSQL feature selection.
+- [x] SQLite local config.
+- [x] PostgreSQL config.
+- [x] SQLx migration directory and migration runner initialization.
+- [x] Initial schema migration.
+- [x] Unique constraints for identity.
+- [x] Transaction tests.
+- [x] Restart persistence tests.
 
 ## Exit criteria
 
@@ -410,13 +410,13 @@ Read test fixtures and feed them through the real normalization pipeline.
 
 ## Tasks
 
-- [ ] Implement collector contract.
-- [ ] Implement registry.
-- [ ] Implement supervisor.
-- [ ] Implement source health state.
-- [ ] Implement replay collector.
-- [ ] Add collector metrics.
-- [ ] Add failure isolation tests.
+- [x] Implement collector contract.
+- [x] Implement registry.
+- [x] Implement supervisor.
+- [x] Implement source health state.
+- [x] Implement replay collector.
+- [x] Add collector metrics.
+- [x] Add failure isolation tests.
 
 ## Exit criteria
 
@@ -479,12 +479,12 @@ Do not assume all fields are always available.
 
 ## Tasks
 
-- [ ] Inspect `Bot_Voucher` source flow.
-- [ ] Inspect `shopee-voucher-tool` claim flow.
-- [ ] Inspect `shop-watcher` reliability patterns.
-- [ ] Record relevant request/response examples.
-- [ ] Sanitize all fixtures.
-- [ ] Add contract tests around any adopted schema.
+- [x] Inspect `Bot_Voucher` source flow.
+- [x] Inspect `shopee-voucher-tool` claim flow.
+- [x] Inspect `shop-watcher` reliability patterns.
+- [x] Record relevant request/response examples.
+- [x] Sanitize all fixtures.
+- [x] Add contract tests around any adopted schema.
 
 ## Exit criteria
 
@@ -528,12 +528,12 @@ Track:
 
 ## Tasks
 
-- [ ] Implement source client.
-- [ ] Implement parser.
-- [ ] Add fixtures.
-- [ ] Add integration tests with fake server.
-- [ ] Add adaptive polling configuration.
-- [ ] Add collector health reporting.
+- [x] Implement source client.
+- [x] Implement parser.
+- [x] Add fixtures.
+- [x] Add integration tests with fake server.
+- [x] Add adaptive polling configuration.
+- [x] Add collector health reporting.
 
 ## Exit criteria
 
@@ -579,11 +579,11 @@ Implement deterministic merge rules.
 
 ## Tasks
 
-- [ ] Add second source.
-- [ ] Add provenance metadata.
-- [ ] Add merge policy.
-- [ ] Add conflicting-source tests.
-- [ ] Add source enable/disable config.
+- [x] Add second source.
+- [x] Add provenance metadata.
+- [x] Add merge policy.
+- [x] Add conflicting-source tests.
+- [x] Add source enable/disable config.
 
 ## Exit criteria
 
@@ -642,12 +642,12 @@ Design notifier so a DB outbox can be inserted later without rewriting business 
 
 ## Tasks
 
-- [ ] Telegram adapter.
-- [ ] Formatting module.
-- [ ] Notification event model.
-- [ ] Idempotency key.
-- [ ] Retry/backoff.
-- [ ] Redaction tests.
+- [x] Telegram adapter.
+- [x] Formatting module.
+- [x] Notification event model.
+- [x] Idempotency key.
+- [x] Retry/backoff.
+- [x] Redaction tests.
 
 ## Exit criteria
 
@@ -700,12 +700,12 @@ DISABLED
 
 ## Tasks
 
-- [ ] Add a Rust-native Chromium/CDP adapter behind an optional/session-only crate boundary (for example `chromiumoxide`), with no browser dependency in the claim fast path.
-- [ ] Add persistent profile config.
-- [ ] Add manual bootstrap script.
-- [ ] Add filesystem permission documentation.
-- [ ] Add session state model.
-- [ ] Add logging redaction around browser/session code.
+- [x] Add a Rust-native Chromium/CDP adapter behind an optional/session-only crate boundary (for example `chromiumoxide`), with no browser dependency in the claim fast path.
+- [x] Add persistent profile config.
+- [x] Add manual bootstrap script.
+- [x] Add filesystem permission documentation.
+- [x] Add session state model.
+- [x] Add logging redaction around browser/session code.
 
 ## Exit criteria
 
@@ -752,12 +752,12 @@ If the browser session can recover authentication without bypassing verification
 
 ## Tasks
 
-- [ ] Implement health probe abstraction.
-- [ ] Implement Shopee auth adapter.
-- [ ] Implement session state transitions.
-- [ ] Implement HTTP cookie jar synchronization.
-- [ ] Add state-transition metrics.
-- [ ] Add integration tests with fake responses.
+- [x] Implement health probe abstraction.
+- [x] Implement Shopee auth adapter.
+- [x] Implement session state transitions.
+- [x] Implement HTTP cookie jar synchronization.
+- [x] Add state-transition metrics.
+- [x] Add integration tests with fake responses.
 
 ## Exit criteria
 
@@ -815,12 +815,12 @@ Every known response class should have a sanitized fixture.
 
 ## Tasks
 
-- [ ] HTTP client.
-- [ ] Error hierarchy.
-- [ ] Response schema models.
-- [ ] Response classifier.
-- [ ] Redacted diagnostics.
-- [ ] Contract tests.
+- [x] HTTP client.
+- [x] Error hierarchy.
+- [x] Response schema models.
+- [x] Response classifier.
+- [x] Redacted diagnostics.
+- [x] Contract tests.
 
 ## Exit criteria
 
@@ -864,12 +864,12 @@ Provide deterministic tests.
 
 ## Tasks
 
-- [ ] Schedule DB model.
-- [ ] Scheduler service.
-- [ ] Startup reconstruction.
-- [ ] Duplicate prevention.
-- [ ] Stale job policy.
-- [ ] Timing tests.
+- [x] Schedule DB model.
+- [x] Scheduler service.
+- [x] Startup reconstruction.
+- [x] Duplicate prevention.
+- [x] Stale job policy.
+- [x] Timing tests.
 
 ## Exit criteria
 
@@ -919,11 +919,11 @@ actual_execution_time - planned_execution_time
 
 ## Tasks
 
-- [ ] Preflight job implementation.
-- [ ] Precision runner.
-- [ ] Monotonic wait abstraction.
-- [ ] Clock-skew operational check.
-- [ ] Timing benchmark script.
+- [x] Preflight job implementation.
+- [x] Precision runner.
+- [x] Monotonic wait abstraction.
+- [x] Clock-skew operational check.
+- [x] Timing benchmark script.
 
 ## Exit criteria
 
@@ -976,11 +976,11 @@ Examples:
 
 ## Tasks
 
-- [ ] Policy interface.
-- [ ] Core rules.
-- [ ] Explainable decision output.
-- [ ] Unit test matrix.
-- [ ] Config binding.
+- [x] Policy interface.
+- [x] Core rules.
+- [x] Explainable decision output.
+- [x] Unit test matrix.
+- [x] Config binding.
 
 ## Exit criteria
 
@@ -1035,12 +1035,12 @@ Every attempt persists:
 
 ## Tasks
 
-- [ ] Claim service.
-- [ ] Claim lock/idempotency mechanism.
-- [ ] Retry policy.
-- [ ] Attempt persistence.
-- [ ] Success/failure notifications.
-- [ ] Live smoke procedure documented but not automated in CI.
+- [x] Claim service.
+- [x] Claim lock/idempotency mechanism.
+- [x] Retry policy.
+- [x] Attempt persistence.
+- [x] Success/failure notifications.
+- [x] Live smoke procedure documented but not automated in CI.
 
 ## Exit criteria
 
@@ -1077,11 +1077,11 @@ Persist pending notifications atomically with important state changes.
 
 ## Tasks
 
-- [ ] Outbox schema.
-- [ ] Event serialization.
-- [ ] Worker.
-- [ ] Retry/dead-letter policy.
-- [ ] Cleanup/retention.
+- [x] Outbox schema.
+- [x] Event serialization.
+- [x] Worker.
+- [x] Retry/dead-letter policy.
+- [x] Cleanup/retention.
 
 ## Exit criteria
 
@@ -1143,11 +1143,11 @@ score 82
 
 ## Tasks
 
-- [ ] Ranking model.
-- [ ] Configurable rules.
-- [ ] Explanation output.
-- [ ] Tests against representative voucher sets.
-- [ ] Telegram formatting.
+- [x] Ranking model.
+- [x] Configurable rules.
+- [x] Explanation output.
+- [x] Tests against representative voucher sets.
+- [x] Telegram formatting.
 
 ## Exit criteria
 
@@ -1202,10 +1202,10 @@ Use this to identify which sources consistently surface vouchers earlier.
 
 ## Tasks
 
-- [ ] Version diff service.
-- [ ] Lifecycle transition rules.
-- [ ] Source-latency metrics.
-- [ ] Historical reports.
+- [x] Version diff service.
+- [x] Lifecycle transition rules.
+- [x] Source-latency metrics.
+- [x] Historical reports.
 
 ## Exit criteria
 
@@ -1254,10 +1254,10 @@ rate-limit incidents
 
 ## Tasks
 
-- [ ] Adaptive interval engine.
-- [ ] Source request budget.
-- [ ] Polling metrics.
-- [ ] Configuration documentation.
+- [x] Adaptive interval engine.
+- [x] Source request budget.
+- [x] Polling metrics.
+- [x] Configuration documentation.
 
 ## Exit criteria
 
@@ -1308,11 +1308,11 @@ show session health
 
 ## Tasks
 
-- [ ] Measure browser stability first.
-- [ ] Separate process only if justified.
-- [ ] Add restart supervision.
-- [ ] Add health bridge.
-- [ ] Harden local IPC/auth.
+- [x] Measure browser stability first.
+- [x] Separate process only if justified.
+- [x] Add restart supervision.
+- [x] Add health bridge.
+- [x] Harden local IPC/auth.
 
 ## Exit criteria
 
@@ -1356,10 +1356,10 @@ Admin interface must not be public unauthenticated Internet surface.
 
 ## Tasks
 
-- [ ] FastAPI/ASGI admin service or equivalent.
-- [ ] Read-only health first.
-- [ ] Add guarded mutation endpoints.
-- [ ] Add audit logs for admin actions.
+- [x] FastAPI/ASGI admin service or equivalent.
+- [x] Read-only health first.
+- [x] Add guarded mutation endpoints.
+- [x] Add audit logs for admin actions.
 
 ## Exit criteria
 
@@ -1410,10 +1410,10 @@ Examples:
 
 ## Tasks
 
-- [ ] Metrics instrumentation.
-- [ ] Dashboard definition.
-- [ ] Alert thresholds.
-- [ ] Alert deduplication/cooldown.
+- [x] Metrics instrumentation.
+- [x] Dashboard definition.
+- [x] Alert thresholds.
+- [x] Alert deduplication/cooldown.
 
 ## Exit criteria
 
@@ -1476,13 +1476,13 @@ Application must:
 
 ## Tasks
 
-- [ ] Multi-stage Rust production Dockerfile using locked dependencies.
-- [ ] Compose file.
-- [ ] Healthchecks.
-- [ ] Persistent volumes.
-- [ ] Backup scripts.
-- [ ] Restore test.
-- [ ] Upgrade/rollback procedure.
+- [x] Multi-stage Rust production Dockerfile using locked dependencies.
+- [x] Compose file.
+- [x] Healthchecks.
+- [x] Persistent volumes.
+- [x] Backup scripts.
+- [x] Restore test.
+- [x] Upgrade/rollback procedure.
 
 ## Exit criteria
 
@@ -1547,17 +1547,17 @@ Benchmark default `cargo build --release` first. Evaluate LTO/codegen settings o
 
 ## Tasks
 
-- [ ] Add release-mode benchmark binary and benchmark fixtures.
-- [ ] Record an end-to-end latency baseline.
-- [ ] Add queue-delay instrumentation.
-- [ ] Profile collector parse/normalize path.
-- [ ] Profile claim-plan preparation path.
-- [ ] Audit Tokio lock/channel behavior.
-- [ ] Verify no browser calls in the precision path.
-- [ ] Verify no required DB read at T=0.
-- [ ] Compare warm vs cold HTTP latency.
-- [ ] Document accepted latency budget per stage.
-- [ ] Add a simple regression procedure for future releases.
+- [x] Add release-mode benchmark binary and benchmark fixtures.
+- [x] Record an end-to-end latency baseline.
+- [x] Add queue-delay instrumentation.
+- [x] Profile collector parse/normalize path.
+- [x] Profile claim-plan preparation path.
+- [x] Audit Tokio lock/channel behavior.
+- [x] Verify no browser calls in the precision path.
+- [x] Verify no required DB read at T=0.
+- [x] Compare warm vs cold HTTP latency.
+- [x] Document accepted latency budget per stage.
+- [x] Add a simple regression procedure for future releases.
 
 ## Exit criteria
 
@@ -1611,13 +1611,13 @@ Only expose ports that are required.
 
 ## Tasks
 
-- [ ] Threat model.
-- [ ] Secret inventory.
-- [ ] Non-root container.
-- [ ] Permission checks.
-- [ ] Secret scanner.
-- [ ] Dependency scanner.
-- [ ] Backup security review.
+- [x] Threat model.
+- [x] Secret inventory.
+- [x] Non-root container.
+- [x] Permission checks.
+- [x] Secret scanner.
+- [x] Dependency scanner.
+- [x] Backup security review.
 
 ## Exit criteria
 
@@ -1665,11 +1665,11 @@ Run for extended time using fake/replay sources before relying on live behavior.
 
 ## Tasks
 
-- [ ] Failure injection harness.
-- [ ] Restart tests.
-- [ ] 24h/72h soak test with replay collector.
-- [ ] Memory/FD monitoring.
-- [ ] Connection leak checks.
+- [x] Failure injection harness.
+- [x] Restart tests.
+- [x] 24h/72h soak test with replay collector.
+- [x] Memory/FD monitoring.
+- [x] Connection leak checks.
 
 ## Exit criteria
 
@@ -1755,10 +1755,10 @@ Do not claim guaranteed checkout applicability unless actually verified through 
 
 ## Tasks
 
-- [ ] Watchlist entities.
-- [ ] CRUD via config/admin bot.
-- [ ] Relevance scoring.
-- [ ] Telegram summaries.
+- [x] Watchlist entities.
+- [x] CRUD via config/admin bot.
+- [x] Relevance scoring.
+- [x] Telegram summaries.
 
 ## Exit criteria
 
