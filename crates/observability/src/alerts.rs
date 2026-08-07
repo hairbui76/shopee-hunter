@@ -155,14 +155,14 @@ impl AlertEvaluator {
             });
         }
 
-        candidates
-            .into_iter()
-            .filter(|a| self.past_cooldown(a.kind, now))
-            .map(|a| {
-                self.last_fired.insert(a.kind, now);
-                a
-            })
-            .collect()
+        let mut firing = Vec::new();
+        for alert in candidates {
+            if self.past_cooldown(alert.kind, now) {
+                self.last_fired.insert(alert.kind, now);
+                firing.push(alert);
+            }
+        }
+        firing
     }
 
     fn past_cooldown(&self, kind: AlertKind, now: DateTime<Utc>) -> bool {
