@@ -323,3 +323,34 @@ async fn schedule_ordering_is_chronological_as_text() {
     assert_eq!(due[0].action, ScheduleAction::NotifyUpcoming);
     assert_eq!(due[1].action, ScheduleAction::ClaimVoucher);
 }
+
+#[tokio::test]
+async fn retention_prunes_old_history_but_keeps_vouchers() {
+    use shopee_hunter_storage::{MaintenanceRepository, RetentionPolicy};
+    let (db, _dir) = temp_db().await;
+    let repo = VoucherRepository::new(&db);
+    let old = Utc::now() - Duration::days(60);
+
+    // Ingest a voucher with an OLD observation timestamp.
+    let mut c = candidate("RET");
+    c.observed_at = old;
+    let vid = repo.upsert_candidate(&c, old).await.unwrap().voucher_id();
+
+    // A retention policy pruning observations older than 30 days.
+    let policy = RetentionPolicy {
+        observations_before: Some(Utc::now() - Duration::days(30)),
+        versions_before: Some(Utc::now() - Duration::days(30)),
+        ..RetentionPolicy::default()
+    };
+    let report = MaintenanceRepository::new(&db)
+        .prune(&policy)
+        .await
+        .unwrap();
+    assert!(report.observations >= 1);
+    // The canonical voucher is retained.
+    assert!(repo.get(vid).await.unwrap().is_some());
+    assert_eq!(repo.count().await.unwrap(), 1);
+
+    // vacuum is a no-op success on SQLite.
+    MaintenanceRepository::new(&db).vacuum().await.unwrap();
+}

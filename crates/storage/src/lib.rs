@@ -16,6 +16,7 @@ pub use error::StorageError;
 pub use repositories::claim::{ClaimAttemptRecord, ClaimRepository};
 pub use repositories::collector::{CollectorRunRecord, CollectorRunRepository, RunOutcome};
 pub use repositories::health::HealthRepository;
+pub use repositories::maintenance::{MaintenanceRepository, PruneReport, RetentionPolicy};
 pub use repositories::outbox::{OutboxRepository, OutboxRow, OutboxStatus};
 pub use repositories::schedule::{ScheduleJobRecord, ScheduleRepository};
 pub use repositories::voucher::{UpsertOutcome, VoucherRepository};
