@@ -15,6 +15,9 @@ shopee-hunter-session.workspace = true
 shopee-hunter-client.workspace = true
 shopee-hunter-collectors.workspace = true
 shopee-hunter-storage.workspace = true
+# Needed by the benchmark_latency bin to time the real PrecisionRunner rather
+# than a stand-in sleep.
+shopee-hunter-scheduler.workspace = true
 anyhow.workspace = true
 tokio.workspace = true
 serde_json.workspace = true
@@ -22,3 +25,15 @@ tracing.workspace = true
 tracing-subscriber.workspace = true
 reqwest.workspace = true
 chrono.workspace = true
+
+[dev-dependencies]
+criterion.workspace = true
+
+# Workspace-level bench sources live in /benches so all hot-path benchmarks sit
+# in one place. The target is attached here rather than to `domain` because the
+# tools crate already owns the measurement harness and depends on domain, so no
+# library manifest needs to carry benchmark-only tooling.
+[[bench]]
+name = "hot_path"
+path = "../../benches/hot_path.rs"
+harness = false
