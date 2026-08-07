@@ -45,7 +45,7 @@ impl AdminCommand {
 /// Parse the leading token of a message into a command. Accepts an optional
 /// `@botname` suffix (`/status@mybot`) and ignores trailing arguments.
 pub fn parse_command(text: &str) -> Option<AdminCommand> {
-    let first = text.trim().split_whitespace().next()?;
+    let first = text.split_whitespace().next()?;
     let cmd = first.split('@').next().unwrap_or(first);
     Some(match cmd {
         "/status" => AdminCommand::Status,
