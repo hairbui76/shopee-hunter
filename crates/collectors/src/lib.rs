@@ -6,6 +6,7 @@
 //! normalized candidates plus source metadata (see AGENTS.md subsystem rules).
 
 pub mod contract;
+pub mod external_feed;
 pub mod pipeline;
 pub mod registry;
 pub mod replay;
@@ -15,6 +16,7 @@ pub use contract::{
     CollectionContext, CollectionResult, CollectorError, PartialFailure, RateLimitHint,
     SharedSourceHealth, SourceHealth, SourceHealthState, VoucherCollector,
 };
+pub use external_feed::{ExternalFeedCollector, PARSER_VERSION as EXTERNAL_FEED_PARSER_VERSION};
 pub use pipeline::{ingest_candidates, PipelineOutcome};
 pub use registry::CollectorRegistry;
 pub use replay::ReplayCollector;
