@@ -199,8 +199,66 @@ pub fn spawn_all(
         settings.collectors.timeout,
     );
     spawn_notifier(&mut supervisor, services, settings)?;
+    spawn_maintenance(&mut supervisor, services);
 
     Ok(supervisor)
+}
+
+/// Rebuild durable scheduler state after a restart: mark far-past jobs STALE
+/// and count future jobs. Database state is authoritative.
+pub async fn reconstruct_scheduler(settings: &Settings, services: &Services) -> anyhow::Result<()> {
+    use shopee_hunter_scheduler::{Scheduler, SchedulerConfig};
+    let config = SchedulerConfig {
+        coarse_tick: settings.scheduler.coarse_tick,
+        preflight_lead: settings.scheduler.preflight,
+        stale_after: settings.scheduler.stale_after,
+    };
+    let scheduler = Scheduler::new(services.db.clone(), config);
+    let report = scheduler.reconstruct(chrono::Utc::now()).await?;
+    tracing::info!(
+        event = "scheduler_reconstructed",
+        future_jobs = report.future_jobs,
+        stale_jobs = report.stale_jobs,
+    );
+    Ok(())
+}
+
+/// Periodic data-retention maintenance (Phase 33): prune history older than a
+/// generous default and checkpoint SQLite. Runs hourly.
+fn spawn_maintenance(supervisor: &mut WorkerSupervisor, services: &Services) {
+    use shopee_hunter_storage::{MaintenanceRepository, RetentionPolicy};
+    let db = services.db.clone();
+    let health = services.health.handle("maintenance");
+    supervisor.supervise(
+        WorkerConfig::new("maintenance", Duration::from_secs(3600)),
+        health,
+        move || {
+            let db = db.clone();
+            async move {
+                let now = Utc::now();
+                // Retain 90 days of history; keep canonical vouchers forever.
+                let cut = |days: i64| Some(now - chrono::Duration::days(days));
+                let policy = RetentionPolicy {
+                    observations_before: cut(90),
+                    versions_before: cut(180),
+                    claim_attempts_before: cut(180),
+                    collector_runs_before: cut(30),
+                    delivered_outbox_before: cut(14),
+                    health_events_before: cut(30),
+                };
+                let repo = MaintenanceRepository::new(&db);
+                let report = repo
+                    .prune(&policy)
+                    .await
+                    .map_err(|e| IterationError::transient(e.to_string()))?;
+                if report.total() > 0 {
+                    tracing::info!(event = "retention_pruned", removed = report.total());
+                }
+                let _ = repo.vacuum().await;
+                Ok(())
+            }
+        },
+    );
 }
 
 #[cfg(test)]

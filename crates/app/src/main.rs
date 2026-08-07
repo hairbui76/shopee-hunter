@@ -43,7 +43,10 @@ async fn run(settings: config::Settings) -> anyhow::Result<()> {
     let health = services.health.clone();
     let metrics = services.metrics.clone();
 
-    // Spawn the pipeline workers (collectors → outbox, notifier drain).
+    // Rebuild durable scheduler state before starting workers (restart-safe).
+    runtime::reconstruct_scheduler(&settings, &services).await?;
+
+    // Spawn the pipeline workers (collectors → outbox, notifier drain, maintenance).
     let supervisor = runtime::spawn_all(&settings, &services, cancel.clone())?;
 
     // Admin/health API.
