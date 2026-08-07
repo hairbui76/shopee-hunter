@@ -47,12 +47,27 @@ async fn run(settings: config::Settings) -> anyhow::Result<()> {
     let supervisor = runtime::spawn_all(&settings, &services, cancel.clone())?;
 
     // Admin/health API.
+    let admin = if settings.observability.admin_token.is_empty() {
+        // Admin read endpoints still work; mutating ones are disabled.
+        Some(api::AdminState {
+            db: services.db.clone(),
+            control: services.control.clone(),
+            token: String::new(),
+        })
+    } else {
+        Some(api::AdminState {
+            db: services.db.clone(),
+            control: services.control.clone(),
+            token: settings.observability.admin_token.clone(),
+        })
+    };
     let api_state = Arc::new(api::ApiState {
         health: health.clone(),
         metrics: metrics.clone(),
         started_at: Utc::now(),
         version: VERSION,
         metrics_enabled: settings.observability.metrics_enabled,
+        admin,
     });
     let api_cancel = cancel.clone();
     let api_bind = settings.observability.healthcheck_bind;

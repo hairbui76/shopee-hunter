@@ -106,6 +106,9 @@ pub struct TelegramSettings {
 pub struct ObservabilitySettings {
     pub healthcheck_bind: SocketAddr,
     pub metrics_enabled: bool,
+    /// Shared secret required for mutating admin endpoints. When empty, those
+    /// endpoints are disabled entirely (read-only health remains available).
+    pub admin_token: String,
 }
 
 pub type Lookup<'a> = &'a dyn Fn(&str) -> Option<String>;
@@ -263,6 +266,7 @@ impl Settings {
                     "127.0.0.1:8686".parse().expect("static default addr"),
                 )?,
                 metrics_enabled: parse_bool(lookup, "METRICS_ENABLED", true)?,
+                admin_token: get(lookup, "ADMIN_TOKEN").unwrap_or_default(),
             },
         };
 

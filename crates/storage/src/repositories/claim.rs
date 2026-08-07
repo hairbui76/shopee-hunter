@@ -110,6 +110,15 @@ impl<'a> ClaimRepository<'a> {
         .await?;
         rows.iter().map(row_to_attempt).collect()
     }
+
+    /// The most recent claim attempts across all vouchers (admin/observability).
+    pub async fn recent(&self, limit: i64) -> Result<Vec<ClaimAttemptRecord>, StorageError> {
+        let rows = sqlx::query("SELECT * FROM claim_attempts ORDER BY started_at DESC LIMIT $1")
+            .bind(limit)
+            .fetch_all(self.db.pool())
+            .await?;
+        rows.iter().map(row_to_attempt).collect()
+    }
 }
 
 fn row_to_attempt(row: &sqlx::any::AnyRow) -> Result<ClaimAttemptRecord, StorageError> {

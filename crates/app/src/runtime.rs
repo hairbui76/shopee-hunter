@@ -17,10 +17,12 @@ use shopee_hunter_notifier::{
 use shopee_hunter_observability::{
     HealthRegistry, IterationError, Metrics, WorkerConfig, WorkerSupervisor,
 };
+use shopee_hunter_session::SessionManager;
 use shopee_hunter_storage::{Database, OutboxRepository};
 use tokio_util::sync::CancellationToken;
 
 use crate::config::Settings;
+use crate::control::ControlPlane;
 
 /// Shared, cheaply-clonable service state.
 #[derive(Clone)]
@@ -29,6 +31,8 @@ pub struct Services {
     pub metrics: Metrics,
     pub health: HealthRegistry,
     pub http: reqwest::Client,
+    pub session: SessionManager,
+    pub control: ControlPlane,
 }
 
 impl Services {
@@ -40,11 +44,15 @@ impl Services {
             .connect_timeout(settings.shopee.connect_timeout)
             .pool_idle_timeout(None)
             .build()?;
+        let session = SessionManager::new();
+        let control = ControlPlane::new(session.clone());
         Ok(Self {
             db,
             metrics: Metrics::new(),
             health: HealthRegistry::new(),
             http,
+            session,
+            control,
         })
     }
 }
