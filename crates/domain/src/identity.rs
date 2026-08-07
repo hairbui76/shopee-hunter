@@ -255,7 +255,7 @@ mod tests {
     fn decimal_scale_does_not_change_hashes() {
         let a = candidate();
         let mut b = candidate();
-        b.discount_amount = Some(Decimal::new(50_000_0, 1)); // 50000.0
+        b.discount_amount = Some(Decimal::new(500_000, 1)); // 50000.0
         assert_eq!(version_hash(&a), version_hash(&b));
         assert_eq!(compute_identity(&a), compute_identity(&b));
     }

@@ -9,6 +9,7 @@ pub mod clock;
 pub mod events;
 pub mod identity;
 pub mod ids;
+pub mod lifecycle;
 pub mod schedule;
 pub mod session;
 pub mod validation;
@@ -19,6 +20,7 @@ pub use clock::{Clock, SystemClock};
 pub use events::DomainEvent;
 pub use identity::{IdentityBasis, VoucherIdentity};
 pub use ids::SourceId;
+pub use lifecycle::{derive_stage, diff_versions, is_upcoming_within, FieldChange, LifecycleStage};
 pub use schedule::{JobStatus, ScheduleAction};
 pub use session::SessionState;
 pub use voucher::{
