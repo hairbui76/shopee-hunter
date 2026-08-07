@@ -96,6 +96,40 @@ mod tests {
     }
 
     #[test]
+    fn redaction_audit_covers_every_documented_secret_key() {
+        // Every secret-bearing field named in docs/security.md must be masked.
+        for key in [
+            "cookie",
+            "set-cookie",
+            "authorization",
+            "telegram_bot_token",
+            "bot_token",
+            "database_password",
+            "postgres_password",
+            "admin_token",
+            "csrf_token",
+            "x-csrftoken",
+            "session_id",
+            "api_key",
+            "SPC_EC",
+            "SPC_ST",
+            "secret_key",
+        ] {
+            assert!(is_sensitive_key(key), "{key} must be treated as secret");
+        }
+        // Non-secret domain fields must NOT be masked (avoid over-redaction).
+        for key in [
+            "voucher_id",
+            "promotion_id",
+            "source",
+            "discount_amount",
+            "title",
+        ] {
+            assert!(!is_sensitive_key(key), "{key} must not be redacted");
+        }
+    }
+
+    #[test]
     fn redacts_json_recursively() {
         let mut v = json!({
             "voucher": {"code": "FREESHIP", "signature": "abc"},
