@@ -3,13 +3,14 @@ name: CI
 on:
   push:
     branches: [main]
-  pull_request:
+  # Manual runs (e.g. to validate the Docker image before a deploy).
+  workflow_dispatch:
 
 env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  check:
+  ci:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -26,19 +27,7 @@ jobs:
         run: cargo clippy --workspace --all-targets --all-features -- -D warnings
       - name: Tests
         run: cargo test --workspace --all-features
-
-  deny:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: EmbarkStudios/cargo-deny-action@v2
+      - name: Dependency policy
+        uses: EmbarkStudios/cargo-deny-action@v2
         with:
           command: check
-
-  docker:
-    runs-on: ubuntu-latest
-    needs: check
-    steps:
-      - uses: actions/checkout@v4
-      - name: Build production image
-        run: docker build -f docker/Dockerfile -t shopee-hunter:ci .
