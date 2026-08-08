@@ -40,10 +40,31 @@ Key settings (all documented in `.env.example`):
 | `DATABASE_URL` | `sqlite://data/shopee-hunter.db?mode=rwc` for dev, `postgres://…` for prod |
 | `ENABLE_REPLAY_COLLECTOR` / `ENABLE_EXTERNAL_FEED_COLLECTOR` | which discovery sources run |
 | `EXTERNAL_FEED_URL` | feed URL (required if the external-feed collector is enabled) |
+| `ENABLE_ACCESSTRADE_COLLECTOR` / `ACCESSTRADE_TOKEN` | **real Shopee VN voucher source** via the Accesstrade affiliate coupon API (see below) |
 | `ENABLE_TELEGRAM`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` | notifications |
 | `ENABLE_AUTO_CLAIM` | **default false** — leave off until you have verified the claim path live |
 | `ADMIN_TOKEN` | required to use the mutating admin endpoints |
 | `HEALTHCHECK_BIND_ADDR` | admin/health API bind (keep it private, default `127.0.0.1:8686`) |
+
+### Getting real vouchers (Accesstrade)
+
+Shopee publishes no public voucher feed. The practical, ToS-safe way to
+discover **real** Shopee VN vouchers is the **Accesstrade** affiliate coupon
+API (a Vietnamese affiliate network):
+
+1. Register at <https://accesstrade.vn> and obtain your **API token**.
+2. In `.env` set:
+   ```
+   ENABLE_ACCESSTRADE_COLLECTOR=true
+   ACCESSTRADE_TOKEN=<your token>
+   ACCESSTRADE_MERCHANT=shopee
+   ```
+3. Start the service — real coupons appear on the voucher dashboard.
+
+The collector calls `GET https://api.accesstrade.vn/v1/offers_informations/coupon`
+with `Authorization: Token <token>` and maps the response into the canonical
+voucher model. (Endpoint/schema are treated as unstable and wrapped behind an
+adapter, per the project's reverse-engineering discipline.)
 
 ## 2. Run locally
 

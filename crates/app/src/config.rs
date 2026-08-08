@@ -71,6 +71,10 @@ pub struct CollectorSettings {
     pub enable_shopee_page: bool,
     pub enable_external_feed: bool,
     pub external_feed_url: Option<String>,
+    /// Accesstrade coupon feed (real Shopee VN voucher source).
+    pub enable_accesstrade: bool,
+    pub accesstrade_token: Option<String>,
+    pub accesstrade_merchant: String,
     pub enable_manual: bool,
     pub enable_replay: bool,
     pub replay_fixture_dir: String,
@@ -240,6 +244,10 @@ impl Settings {
                 enable_shopee_page: parse_bool(lookup, "ENABLE_SHOPEE_PAGE_COLLECTOR", false)?,
                 enable_external_feed: parse_bool(lookup, "ENABLE_EXTERNAL_FEED_COLLECTOR", false)?,
                 external_feed_url: get(lookup, "EXTERNAL_FEED_URL"),
+                enable_accesstrade: parse_bool(lookup, "ENABLE_ACCESSTRADE_COLLECTOR", false)?,
+                accesstrade_token: get(lookup, "ACCESSTRADE_TOKEN"),
+                accesstrade_merchant: get(lookup, "ACCESSTRADE_MERCHANT")
+                    .unwrap_or_else(|| "shopee".into()),
                 enable_manual: parse_bool(lookup, "ENABLE_MANUAL_COLLECTOR", true)?,
                 enable_replay: parse_bool(lookup, "ENABLE_REPLAY_COLLECTOR", false)?,
                 replay_fixture_dir: get(lookup, "REPLAY_FIXTURE_DIR")
@@ -318,6 +326,19 @@ impl Settings {
                 reason: "required when ENABLE_EXTERNAL_FEED_COLLECTOR=true".into(),
             });
         }
+        if self.collectors.enable_accesstrade
+            && self
+                .collectors
+                .accesstrade_token
+                .as_deref()
+                .map(|t| t.trim().is_empty() || t.contains("CHANGE_ME"))
+                .unwrap_or(true)
+        {
+            return Err(ConfigError::Invalid {
+                key: "ACCESSTRADE_TOKEN",
+                reason: "required (non-placeholder) when ENABLE_ACCESSTRADE_COLLECTOR=true".into(),
+            });
+        }
         Ok(())
     }
 }
@@ -392,5 +413,25 @@ mod tests {
         env.insert("TELEGRAM_ADMIN_CHAT_IDS".into(), "1, 2,3 ,".into());
         let s = load(&env).expect("should load");
         assert_eq!(s.telegram.admin_chat_ids, vec!["1", "2", "3"]);
+    }
+
+    #[test]
+    fn accesstrade_enabled_requires_a_real_token() {
+        let mut env = base_env();
+        env.insert("ENABLE_ACCESSTRADE_COLLECTOR".into(), "true".into());
+        // no token → rejected
+        assert!(load(&env).is_err());
+        // placeholder → rejected
+        env.insert("ACCESSTRADE_TOKEN".into(), "CHANGE_ME".into());
+        assert!(load(&env).is_err());
+        // real token → loads, merchant defaults to shopee
+        env.insert("ACCESSTRADE_TOKEN".into(), "real-token-xyz".into());
+        let s = load(&env).expect("should load");
+        assert!(s.collectors.enable_accesstrade);
+        assert_eq!(s.collectors.accesstrade_merchant, "shopee");
+        assert_eq!(
+            s.collectors.accesstrade_token.as_deref(),
+            Some("real-token-xyz")
+        );
     }
 }

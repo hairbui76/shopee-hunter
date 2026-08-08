@@ -40,10 +40,31 @@ Các thiết lập chính (đều có mô tả trong `.env.example`):
 | `DATABASE_URL` | `sqlite://data/shopee-hunter.db?mode=rwc` cho dev, `postgres://…` cho prod |
 | `ENABLE_REPLAY_COLLECTOR` / `ENABLE_EXTERNAL_FEED_COLLECTOR` | nguồn phát hiện voucher nào chạy |
 | `EXTERNAL_FEED_URL` | URL feed (bắt buộc nếu bật external-feed collector) |
+| `ENABLE_ACCESSTRADE_COLLECTOR` / `ACCESSTRADE_TOKEN` | **nguồn voucher Shopee VN thật** qua API coupon affiliate Accesstrade (xem bên dưới) |
 | `ENABLE_TELEGRAM`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` | thông báo |
 | `ENABLE_AUTO_CLAIM` | **mặc định false** — để tắt cho đến khi đã kiểm chứng luồng claim thật |
 | `ADMIN_TOKEN` | bắt buộc để dùng các endpoint admin có thay đổi trạng thái |
 | `HEALTHCHECK_BIND_ADDR` | địa chỉ bind API admin/health (giữ riêng tư, mặc định `127.0.0.1:8686`) |
+
+### Lấy voucher THẬT (Accesstrade)
+
+Shopee không công bố feed voucher công khai. Cách thực tế và an toàn (đúng ToS)
+để phát hiện voucher Shopee VN **thật** là dùng API coupon của **Accesstrade**
+(mạng affiliate Việt Nam):
+
+1. Đăng ký tại <https://accesstrade.vn> và lấy **API token**.
+2. Trong `.env` đặt:
+   ```
+   ENABLE_ACCESSTRADE_COLLECTOR=true
+   ACCESSTRADE_TOKEN=<token của bạn>
+   ACCESSTRADE_MERCHANT=shopee
+   ```
+3. Khởi động dịch vụ — voucher thật sẽ xuất hiện trên dashboard.
+
+Collector gọi `GET https://api.accesstrade.vn/v1/offers_informations/coupon`
+với `Authorization: Token <token>` và ánh xạ phản hồi vào mô hình voucher chuẩn.
+(Endpoint/schema được coi là không ổn định và bọc sau adapter, đúng kỷ luật
+reverse-engineering của dự án.)
 
 ## 2. Chạy cục bộ
 

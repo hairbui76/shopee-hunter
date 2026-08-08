@@ -8,8 +8,8 @@ use std::time::Duration;
 
 use chrono::Utc;
 use shopee_hunter_collectors::{
-    CollectorRegistry, CollectorSupervisor, ExternalFeedCollector, ReplayCollector,
-    SupervisedSource,
+    AccesstradeCollector, AccesstradeConfig, CollectorRegistry, CollectorSupervisor,
+    ExternalFeedCollector, ReplayCollector, SupervisedSource,
 };
 use shopee_hunter_notifier::{
     Notifier, OutboxNotifierWorker, OutboxWorkerConfig, StubNotifier, TelegramNotifier,
@@ -68,6 +68,18 @@ pub fn build_collectors(settings: &Settings, http: reqwest::Client) -> Collector
                 url.clone(),
                 http.clone(),
                 settings.collectors.timeout,
+            )));
+        }
+    }
+    if settings.collectors.enable_accesstrade {
+        if let Some(token) = &settings.collectors.accesstrade_token {
+            let mut cfg = AccesstradeConfig::new(token.clone());
+            cfg.merchant = settings.collectors.accesstrade_merchant.clone();
+            cfg.timeout = settings.collectors.timeout;
+            registry.register(Arc::new(AccesstradeCollector::new(
+                "accesstrade",
+                cfg,
+                http.clone(),
             )));
         }
     }

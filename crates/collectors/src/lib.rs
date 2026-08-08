@@ -5,6 +5,7 @@
 //! Collectors never claim vouchers or send notifications; they only emit
 //! normalized candidates plus source metadata (see AGENTS.md subsystem rules).
 
+pub mod accesstrade;
 pub mod contract;
 pub mod external_feed;
 pub mod pipeline;
@@ -14,6 +15,7 @@ pub mod registry;
 pub mod replay;
 pub mod supervisor;
 
+pub use accesstrade::{AccesstradeCollector, AccesstradeConfig};
 pub use contract::{
     CollectionContext, CollectionResult, CollectorError, PartialFailure, RateLimitHint,
     SharedSourceHealth, SourceHealth, SourceHealthState, VoucherCollector,
