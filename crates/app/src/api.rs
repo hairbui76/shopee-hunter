@@ -39,8 +39,15 @@ pub struct AdminState {
 
 pub type SharedApiState = Arc<ApiState>;
 
+/// The operator dashboard: a self-contained single-page app (no build step, no
+/// external assets) served by the app itself so it shares the API's origin and
+/// private bind. Consumes the health/admin JSON endpoints below.
+const DASHBOARD_HTML: &str = include_str!("../static/dashboard.html");
+
 pub fn router(state: SharedApiState) -> Router {
     Router::new()
+        .route("/", get(dashboard))
+        .route("/ui", get(dashboard))
         .route("/health/live", get(live))
         .route("/health/ready", get(ready))
         .route("/health/details", get(details))
@@ -69,6 +76,13 @@ fn authorize(state: &ApiState, headers: &HeaderMap) -> Option<(StatusCode, &'sta
     } else {
         Some((StatusCode::UNAUTHORIZED, "invalid admin token"))
     }
+}
+
+async fn dashboard() -> impl IntoResponse {
+    (
+        [(axum::http::header::CONTENT_TYPE, "text/html; charset=utf-8")],
+        DASHBOARD_HTML,
+    )
 }
 
 async fn live() -> impl IntoResponse {
@@ -311,6 +325,28 @@ mod tests {
             .unwrap();
         assert_eq!(res.status(), StatusCode::OK);
         assert!(s.admin.as_ref().unwrap().control.claims_paused());
+    }
+
+    #[tokio::test]
+    async fn dashboard_is_served_as_html() {
+        let res = router(state())
+            .oneshot(Request::get("/").body(Body::empty()).unwrap())
+            .await
+            .unwrap();
+        assert_eq!(res.status(), StatusCode::OK);
+        let ct = res
+            .headers()
+            .get("content-type")
+            .and_then(|v| v.to_str().ok())
+            .unwrap_or_default()
+            .to_string();
+        assert!(ct.contains("text/html"), "content-type was {ct}");
+        let body = axum::body::to_bytes(res.into_body(), 1 << 20)
+            .await
+            .unwrap();
+        let html = String::from_utf8_lossy(&body);
+        assert!(html.contains("shopee-hunter"));
+        assert!(html.contains("/admin/claims/pause")); // wires to the real action
     }
 
     #[tokio::test]

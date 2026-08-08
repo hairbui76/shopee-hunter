@@ -70,9 +70,28 @@ COLLECTOR_DEFAULT_INTERVAL_SECS=5 \
 
 The service shuts down cleanly on `Ctrl-C` (SIGINT) or SIGTERM.
 
-## 3. Health & admin endpoints
+## 3. Operator dashboard
 
-The API binds privately (default `127.0.0.1:8686`):
+The app serves a self-contained web dashboard (no build step, no external
+assets) at the API root — open it in a browser:
+
+```
+http://127.0.0.1:8686/
+```
+
+It shows service health, session & claim-gate state, discovery metrics,
+scheduled jobs, and recent claim attempts (auto-refreshing), with buttons to
+pause/resume claims and request a session refresh (these require the admin
+token, entered in the page and stored only in your browser).
+
+> **Exposing it:** set `HEALTHCHECK_BIND_ADDR=0.0.0.0:8686` to reach it from
+> other machines. The read views are unauthenticated, so only expose it on a
+> trusted network / behind a reverse proxy, and set a strong `ADMIN_TOKEN`
+> (without it, the mutating actions are disabled).
+
+## 4. Health & admin endpoints
+
+The API binds privately by default (`127.0.0.1:8686`):
 
 ```bash
 curl http://127.0.0.1:8686/health/live      # process alive

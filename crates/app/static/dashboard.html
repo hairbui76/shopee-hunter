@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>shopee-hunter · operator dashboard</title>
+<style>
+  :root {
+    --bg: #f6f7f9; --panel: #ffffff; --border: #e3e6ea; --text: #1b1f24;
+    --muted: #6ب7280; --muted: #6b7280; --accent: #2563eb; --accent-fg: #fff;
+    --ok: #15803d; --ok-bg: #dcfce7; --warn: #b45309; --warn-bg: #fef3c7;
+    --bad: #b91c1c; --bad-bg: #fee2e2; --neutral: #4b5563; --neutral-bg: #eef0f3;
+    --shadow: 0 1px 2px rgba(0,0,0,.06), 0 1px 3px rgba(0,0,0,.04);
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0f1115; --panel: #171a21; --border: #262b34; --text: #e6e9ee;
+      --muted: #9aa4b2; --accent: #3b82f6; --accent-fg: #fff;
+      --ok: #4ade80; --ok-bg: #14321f; --warn: #fbbf24; --warn-bg: #3a2c07;
+      --bad: #f87171; --bad-bg: #3a1414; --neutral: #cbd5e1; --neutral-bg: #232833;
+      --shadow: none;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0f1115; --panel: #171a21; --border: #262b34; --text: #e6e9ee;
+    --muted: #9aa4b2; --accent: #3b82f6; --accent-fg: #fff;
+    --ok: #4ade80; --ok-bg: #14321f; --warn: #fbbf24; --warn-bg: #3a2c07;
+    --bad: #f87171; --bad-bg: #3a1414; --neutral: #cbd5e1; --neutral-bg: #232833;
+    --shadow: none;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font: 14px/1.5 system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  }
+  header {
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    padding: 14px 20px; background: var(--panel); border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 10;
+  }
+  header h1 { font-size: 16px; margin: 0; font-weight: 650; letter-spacing: .2px; }
+  header .spacer { flex: 1; }
+  .pill {
+    font-size: 12px; padding: 3px 9px; border-radius: 999px; font-weight: 600;
+    background: var(--neutral-bg); color: var(--neutral);
+  }
+  .pill.ok { background: var(--ok-bg); color: var(--ok); }
+  .pill.warn { background: var(--warn-bg); color: var(--warn); }
+  .pill.bad { background: var(--bad-bg); color: var(--bad); }
+  main { padding: 20px; max-width: 1100px; margin: 0 auto; display: grid; gap: 16px;
+         grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 12px;
+          box-shadow: var(--shadow); overflow: hidden; }
+  .card.wide { grid-column: 1 / -1; }
+  .card h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .5px;
+             color: var(--muted); margin: 0; padding: 12px 16px; border-bottom: 1px solid var(--border); }
+  .card .body { padding: 14px 16px; }
+  .kv { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; }
+  .kv dt { color: var(--muted); }
+  .kv dd { margin: 0; font-variant-numeric: tabular-nums; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 7px 16px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  th { color: var(--muted); font-weight: 600; font-size: 12px; }
+  .scroll { overflow-x: auto; }
+  .mono { font-family: var(--mono); font-size: 12px; }
+  .muted { color: var(--muted); }
+  input[type=password], input[type=text] {
+    background: var(--bg); color: var(--text); border: 1px solid var(--border);
+    border-radius: 8px; padding: 6px 10px; font-size: 13px; min-width: 160px;
+  }
+  button {
+    background: var(--accent); color: var(--accent-fg); border: 0; border-radius: 8px;
+    padding: 6px 12px; font-size: 13px; font-weight: 600; cursor: pointer;
+  }
+  button.secondary { background: var(--neutral-bg); color: var(--text); }
+  button:disabled { opacity: .5; cursor: not-allowed; }
+  .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .toast { position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
+           background: var(--text); color: var(--bg); padding: 9px 16px; border-radius: 8px;
+           font-size: 13px; opacity: 0; transition: opacity .2s; pointer-events: none; }
+  .toast.show { opacity: 1; }
+  .empty { color: var(--muted); font-style: italic; padding: 4px 0; }
+  code.k { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+</style>
+</head>
+<body>
+<header>
+  <h1>🎟️ shopee-hunter</h1>
+  <span id="overall" class="pill">…</span>
+  <span class="spacer"></span>
+  <span class="muted" id="clock"></span>
+  <button class="secondary" id="theme" title="Toggle theme">◐</button>
+</header>
+
+<main>
+  <section class="card">
+    <h2>Service health</h2>
+    <div class="body">
+      <dl class="kv">
+        <dt>Version</dt><dd id="version" class="mono">–</dd>
+        <dt>Uptime</dt><dd id="uptime">–</dd>
+        <dt>Overall</dt><dd id="overall2">–</dd>
+      </dl>
+      <div style="height:10px"></div>
+      <div class="scroll"><table id="workers">
+        <thead><tr><th>Worker</th><th>State</th><th>Fails</th><th>Last success</th></tr></thead>
+        <tbody></tbody>
+      </table></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Session &amp; claim control</h2>
+    <div class="body">
+      <dl class="kv">
+        <dt>Session</dt><dd id="sess-state"><span class="pill">?</span></dd>
+        <dt>Claims paused</dt><dd id="sess-paused">–</dd>
+        <dt>Claims allowed</dt><dd id="sess-allowed">–</dd>
+        <dt>Last healthy</dt><dd id="sess-healthy" class="mono">–</dd>
+      </dl>
+      <div style="height:12px"></div>
+      <div class="row">
+        <input id="token" type="password" placeholder="x-admin-token" autocomplete="off" />
+        <button id="btn-pause">Pause claims</button>
+        <button id="btn-resume" class="secondary">Resume</button>
+        <button id="btn-refresh" class="secondary">Refresh session</button>
+      </div>
+      <p class="muted" style="margin:.6em 0 0">Mutating actions require <code class="k">ADMIN_TOKEN</code>. Stored in this browser only.</p>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Discovery (24h)</h2>
+    <div class="body">
+      <dl class="kv">
+        <dt>Collector runs</dt><dd id="m-runs">–</dd>
+        <dt>Candidates seen</dt><dd id="m-cand">–</dd>
+        <dt>New vouchers</dt><dd id="m-new">–</dd>
+        <dt>Updated</dt><dd id="m-upd">–</dd>
+        <dt>Collector failures</dt><dd id="m-fail">–</dd>
+      </dl>
+    </div>
+  </section>
+
+  <section class="card wide">
+    <h2>Scheduled jobs</h2>
+    <div class="scroll"><table id="jobs">
+      <thead><tr><th>Action</th><th>Status</th><th>Execute at</th><th>Attempts</th><th>Voucher</th></tr></thead>
+      <tbody></tbody>
+    </table></div>
+  </section>
+
+  <section class="card wide">
+    <h2>Recent claim attempts</h2>
+    <div class="scroll"><table id="claims">
+      <thead><tr><th>Started</th><th>Result</th><th>Latency</th><th>Retry</th><th>Voucher</th></tr></thead>
+      <tbody></tbody>
+    </table></div>
+  </section>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(() => {
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  const REFRESH_MS = 5000;
+
+  // Theme toggle (persisted).
+  const root = document.documentElement;
+  const savedTheme = localStorage.getItem("sh-theme");
+  if (savedTheme) root.setAttribute("data-theme", savedTheme);
+  $("theme").onclick = () => {
+    const cur = root.getAttribute("data-theme");
+    const next = cur === "dark" ? "light" : "dark";
+    root.setAttribute("data-theme", next);
+    localStorage.setItem("sh-theme", next);
+  };
+
+  // Admin token persistence (browser-local only).
+  $("token").value = localStorage.getItem("sh-token") || "";
+  $("token").oninput = () => localStorage.setItem("sh-token", $("token").value);
+
+  const toast = (msg) => {
+    const t = $("toast"); t.textContent = msg; t.classList.add("show");
+    setTimeout(() => t.classList.remove("show"), 2200);
+  };
+
+  const pill = (text, kind) => `<span class="pill ${kind}">${text}</span>`;
+  const stateKind = (s) => {
+    if (s === "HEALTHY") return "ok";
+    if (s === "DEGRADED" || s === "STARTING" || s === "UNKNOWN") return "warn";
+    if (s === "FAILED" || s === "EXPIRED" || s === "LOGIN_REQUIRED" ||
+        s === "VERIFICATION_REQUIRED" || s === "DISABLED") return "bad";
+    return "";
+  };
+  const esc = (v) => String(v ?? "").replace(/[&<>"]/g, c =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const fmtTs = (ts) => ts ? new Date(ts).toLocaleString() : "–";
+
+  async function getJson(path) {
+    const r = await fetch(path, { headers: { "accept": "application/json" } });
+    if (!r.ok) throw new Error(path + " → HTTP " + r.status);
+    return r.json();
+  }
+
+  function parseMetric(text, name) {
+    // Sum all label-series of a counter metric from Prometheus text.
+    let sum = 0, found = false;
+    for (const line of text.split("\n")) {
+      if (line.startsWith(name + " ") || line.startsWith(name + "{")) {
+        const v = Number(line.slice(line.lastIndexOf(" ") + 1));
+        if (!Number.isNaN(v)) { sum += v; found = true; }
+      }
+    }
+    return found ? sum : null;
+  }
+
+  async function refresh() {
+    // Health details
+    try {
+      const h = await getJson("/health/details");
+      $("version").textContent = h.version;
+      $("uptime").textContent = fmtDuration(h.uptime_secs);
+      const ok = stateKind(h.overall);
+      $("overall").className = "pill " + ok; $("overall").textContent = h.overall;
+      $("overall2").innerHTML = pill(h.overall, ok);
+      const tb = $("workers").querySelector("tbody"); tb.innerHTML = "";
+      const svcs = h.services || {};
+      const names = Object.keys(svcs).sort();
+      if (!names.length) tb.innerHTML = `<tr><td colspan="4" class="empty">no workers</td></tr>`;
+      for (const n of names) {
+        const s = svcs[n];
+        tb.insertAdjacentHTML("beforeend",
+          `<tr><td>${esc(n)}</td><td>${pill(s.state, stateKind(s.state))}</td>
+           <td>${s.consecutive_failures}</td><td class="mono">${fmtTs(s.last_success)}</td></tr>`);
+      }
+    } catch (e) {
+      $("overall").className = "pill bad"; $("overall").textContent = "unreachable";
+    }
+
+    // Session
+    try {
+      const s = await getJson("/admin/session");
+      const st = s.session ? s.session.state : "?";
+      $("sess-state").innerHTML = pill(st, stateKind(st));
+      $("sess-paused").textContent = s.claims_paused ? "yes" : "no";
+      $("sess-allowed").innerHTML = s.claims_allowed ? pill("yes", "ok") : pill("no", "warn");
+      $("sess-healthy").textContent = fmtTs(s.session && s.session.last_healthy_at);
+    } catch (e) { /* admin disabled */ }
+
+    // Metrics
+    try {
+      const text = await (await fetch("/metrics")).text();
+      const set = (id, name) => { const v = parseMetric(text, name); $(id).textContent = v == null ? "–" : v; };
+      set("m-runs", "collector_runs_total");
+      set("m-cand", "collector_candidates_total");
+      set("m-new", "collector_new_total");
+      set("m-upd", "collector_updated_total");
+      set("m-fail", "collector_failures_total");
+    } catch (e) { /* metrics disabled */ }
+
+    // Jobs
+    try {
+      const j = await getJson("/admin/jobs");
+      const tb = $("jobs").querySelector("tbody"); tb.innerHTML = "";
+      const jobs = j.jobs || [];
+      if (!jobs.length) tb.innerHTML = `<tr><td colspan="5" class="empty">no scheduled jobs</td></tr>`;
+      for (const job of jobs) {
+        tb.insertAdjacentHTML("beforeend",
+          `<tr><td>${esc(job.action)}</td><td>${esc(job.status)}</td>
+           <td class="mono">${fmtTs(job.execute_at)}</td><td>${job.attempt_count}</td>
+           <td class="mono">${esc((job.voucher_id||"").slice(0,8))}</td></tr>`);
+      }
+    } catch (e) { /* admin disabled */ }
+
+    // Claims
+    try {
+      const c = await getJson("/admin/claims/recent");
+      const tb = $("claims").querySelector("tbody"); tb.innerHTML = "";
+      const rows = c.attempts || [];
+      if (!rows.length) tb.innerHTML = `<tr><td colspan="5" class="empty">no claim attempts</td></tr>`;
+      for (const a of rows) {
+        tb.insertAdjacentHTML("beforeend",
+          `<tr><td class="mono">${fmtTs(a.started_at)}</td><td>${esc(a.result_class||"—")}</td>
+           <td>${a.latency_ms == null ? "–" : a.latency_ms + " ms"}</td><td>${a.retry_index}</td>
+           <td class="mono">${esc((a.voucher_id||"").slice(0,8))}</td></tr>`);
+      }
+    } catch (e) { /* admin disabled */ }
+
+    $("clock").textContent = "updated " + new Date().toLocaleTimeString();
+  }
+
+  function fmtDuration(secs) {
+    secs = Number(secs) || 0;
+    const d = Math.floor(secs / 86400), h = Math.floor(secs % 86400 / 3600),
+          m = Math.floor(secs % 3600 / 60), s = secs % 60;
+    return [d && d + "d", h && h + "h", m && m + "m", (s || (!d && !h && !m)) && s + "s"]
+      .filter(Boolean).join(" ");
+  }
+
+  async function action(path, label) {
+    const token = $("token").value.trim();
+    if (!token) { toast("Enter the admin token first"); return; }
+    try {
+      const r = await fetch(path, { method: "POST", headers: { "x-admin-token": token } });
+      if (r.status === 401) { toast("Invalid admin token"); return; }
+      if (r.status === 404) { toast("Admin endpoints are disabled (no ADMIN_TOKEN set)"); return; }
+      if (!r.ok) { toast(label + " failed: HTTP " + r.status); return; }
+      toast(label + " ✓"); refresh();
+    } catch (e) { toast(label + " failed: " + e.message); }
+  }
+  $("btn-pause").onclick = () => action("/admin/claims/pause", "Paused");
+  $("btn-resume").onclick = () => action("/admin/claims/resume", "Resumed");
+  $("btn-refresh").onclick = () => action("/admin/session/refresh", "Refresh requested");
+
+  refresh();
+  setInterval(refresh, REFRESH_MS);
+})();
+</script>
+</body>
+</html>

@@ -70,9 +70,28 @@ COLLECTOR_DEFAULT_INTERVAL_SECS=5 \
 
 Dịch vụ tắt sạch khi nhấn `Ctrl-C` (SIGINT) hoặc nhận SIGTERM.
 
-## 3. Endpoint health & admin
+## 3. Dashboard vận hành
 
-API bind riêng tư (mặc định `127.0.0.1:8686`):
+App phục vụ sẵn một dashboard web tự chứa (không cần build, không tải asset
+ngoài) tại gốc API — mở bằng trình duyệt:
+
+```
+http://127.0.0.1:8686/
+```
+
+Dashboard hiển thị sức khỏe dịch vụ, trạng thái session & claim-gate, số liệu
+phát hiện voucher, các job đã lên lịch, và các lần claim gần đây (tự làm mới),
+kèm nút pause/resume claim và yêu cầu refresh session (các nút này cần admin
+token, nhập trong trang và chỉ lưu trong trình duyệt của bạn).
+
+> **Mở ra ngoài:** đặt `HEALTHCHECK_BIND_ADDR=0.0.0.0:8686` để truy cập từ máy
+> khác. Các view đọc không có xác thực, nên chỉ mở trong mạng tin cậy / sau
+> reverse proxy, và đặt `ADMIN_TOKEN` mạnh (không có nó thì các thao tác thay
+> đổi trạng thái bị tắt).
+
+## 4. Endpoint health & admin
+
+API bind riêng tư mặc định (`127.0.0.1:8686`):
 
 ```bash
 curl http://127.0.0.1:8686/health/live      # tiến trình còn sống
