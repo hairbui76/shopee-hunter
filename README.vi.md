@@ -70,19 +70,21 @@ COLLECTOR_DEFAULT_INTERVAL_SECS=5 \
 
 Dịch vụ tắt sạch khi nhấn `Ctrl-C` (SIGINT) hoặc nhận SIGTERM.
 
-## 3. Dashboard vận hành
+## 3. Dashboard web
 
-App phục vụ sẵn một dashboard web tự chứa (không cần build, không tải asset
-ngoài) tại gốc API — mở bằng trình duyệt:
+App phục vụ sẵn hai dashboard web tự chứa (không cần build, không tải asset
+ngoài) — mở bằng trình duyệt:
 
-```
-http://127.0.0.1:8686/
-```
+- **`http://127.0.0.1:8686/`** — **Dashboard voucher**: danh sách voucher đã
+  phát hiện (mã, loại, mức giảm, đơn tối thiểu, thời gian hiệu lực, trạng thái,
+  nguồn, thấy lần cuối) kèm tìm kiếm/lọc, và panel "lần thu thập gần nhất" hiển
+  thị lần chạy collector mới nhất theo từng nguồn (cron). Tự làm mới.
+- **`http://127.0.0.1:8686/ops`** — **Dashboard vận hành**: sức khỏe dịch vụ,
+  trạng thái session & claim-gate, số liệu phát hiện, job đã lên lịch, các lần
+  claim gần đây, kèm nút pause/resume/refresh (cần admin token, nhập trong
+  trang và chỉ lưu ở trình duyệt).
 
-Dashboard hiển thị sức khỏe dịch vụ, trạng thái session & claim-gate, số liệu
-phát hiện voucher, các job đã lên lịch, và các lần claim gần đây (tự làm mới),
-kèm nút pause/resume claim và yêu cầu refresh session (các nút này cần admin
-token, nhập trong trang và chỉ lưu trong trình duyệt của bạn).
+JSON phía sau: `GET /vouchers`, `GET /collectors`.
 
 > **Mở ra ngoài:** đặt `HEALTHCHECK_BIND_ADDR=0.0.0.0:8686` để truy cập từ máy
 > khác. Các view đọc không có xác thực, nên chỉ mở trong mạng tin cậy / sau

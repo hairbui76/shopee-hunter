@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>shopee-hunter · vouchers</title>
+<style>
+  :root {
+    --bg:#f6f7f9; --panel:#fff; --border:#e3e6ea; --text:#1b1f24; --muted:#6b7280;
+    --accent:#ee4d2d; --accent-fg:#fff; --chip:#eef0f3; --chipfg:#4b5563;
+    --ok:#15803d; --ok-bg:#dcfce7; --warn:#b45309; --warn-bg:#fef3c7; --bad:#b91c1c; --bad-bg:#fee2e2;
+    --shadow:0 1px 2px rgba(0,0,0,.06),0 1px 3px rgba(0,0,0,.04);
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+    --bg:#0f1115; --panel:#171a21; --border:#262b34; --text:#e6e9ee; --muted:#9aa4b2;
+    --accent:#ff6740; --chip:#232833; --chipfg:#cbd5e1;
+    --ok:#4ade80; --ok-bg:#14321f; --warn:#fbbf24; --warn-bg:#3a2c07; --bad:#f87171; --bad-bg:#3a1414; --shadow:none;
+  }}
+  :root[data-theme="dark"]{
+    --bg:#0f1115; --panel:#171a21; --border:#262b34; --text:#e6e9ee; --muted:#9aa4b2;
+    --accent:#ff6740; --chip:#232833; --chipfg:#cbd5e1;
+    --ok:#4ade80; --ok-bg:#14321f; --warn:#fbbf24; --warn-bg:#3a2c07; --bad:#f87171; --bad-bg:#3a1414; --shadow:none;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+  header{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:14px 20px;background:var(--panel);
+         border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10}
+  header h1{font-size:16px;margin:0;font-weight:650}
+  header .spacer{flex:1}
+  a.link{color:var(--muted);text-decoration:none;font-size:13px}
+  a.link:hover{color:var(--text)}
+  main{padding:20px;max-width:1150px;margin:0 auto;display:grid;gap:16px}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);overflow:hidden}
+  .card h2{font-size:13px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);
+           margin:0;padding:12px 16px;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:center}
+  .card h2 .count{background:var(--chip);color:var(--chipfg);border-radius:999px;padding:1px 8px;font-size:12px;letter-spacing:0}
+  .scroll{overflow-x:auto}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:left;padding:9px 16px;border-bottom:1px solid var(--border);vertical-align:top}
+  th{color:var(--muted);font-weight:600;font-size:12px;white-space:nowrap}
+  tr:last-child td{border-bottom:0}
+  .code{font-family:var(--mono);font-weight:650}
+  .title{max-width:320px}
+  .chip{display:inline-block;background:var(--chip);color:var(--chipfg);border-radius:6px;padding:1px 7px;font-size:12px;font-weight:600}
+  .chip.platform{background:#ffe8e2;color:#c2410c}
+  .chip.freeship{background:#e0f2fe;color:#0369a1}
+  .chip.shop{background:#f3e8ff;color:#7e22ce}
+  .chip.payment{background:#dcfce7;color:#15803d}
+  @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .chip.platform{background:#3a1e10;color:#fdba74}
+    :root:not([data-theme="light"]) .chip.freeship{background:#0c2a3d;color:#7dd3fc}
+    :root:not([data-theme="light"]) .chip.shop{background:#2a173a;color:#d8b4fe}
+    :root:not([data-theme="light"]) .chip.payment{background:#12321f;color:#86efac}}
+  .status{font-size:12px;font-weight:600;padding:1px 7px;border-radius:999px}
+  .status.DISCOVERED{background:var(--chip);color:var(--chipfg)}
+  .status.SAVED{background:var(--ok-bg);color:var(--ok)}
+  .status.EXHAUSTED,.status.EXPIRED,.status.INELIGIBLE{background:var(--bad-bg);color:var(--bad)}
+  .status.SCHEDULED,.status.CLAIMING,.status.ELIGIBLE{background:var(--warn-bg);color:var(--warn)}
+  .money{font-variant-numeric:tabular-nums;white-space:nowrap}
+  .muted{color:var(--muted)}
+  .when{font-family:var(--mono);font-size:12px;white-space:nowrap}
+  .empty{color:var(--muted);font-style:italic;padding:16px}
+  .toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:10px 16px;border-bottom:1px solid var(--border)}
+  input[type=search],select{background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:13px}
+  button.secondary{background:var(--chip);color:var(--text);border:0;border-radius:8px;padding:6px 12px;font-size:13px;cursor:pointer}
+  .runs{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;padding:14px 16px}
+  .run{border:1px solid var(--border);border-radius:10px;padding:10px 12px}
+  .run .src{font-weight:650;display:flex;justify-content:space-between;gap:8px;align-items:center}
+  .run .meta{color:var(--muted);font-size:12px;margin-top:4px}
+  .dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+  .dot.SUCCESS{background:var(--ok)} .dot.PARTIAL{background:var(--warn)} .dot.FAILED{background:var(--bad)}
+</style>
+</head>
+<body>
+<header>
+  <h1>🎟️ shopee-hunter · Vouchers</h1>
+  <span class="spacer"></span>
+  <span class="muted" id="clock"></span>
+  <a class="link" href="/ops">Ops ▸</a>
+  <button class="secondary" id="theme" title="Đổi giao diện">◐</button>
+</header>
+
+<main>
+  <section class="card">
+    <h2>Lần thu thập gần nhất <span class="count" id="src-count">0</span></h2>
+    <div class="runs" id="runs"><div class="empty">đang tải…</div></div>
+  </section>
+
+  <section class="card">
+    <h2>Voucher đã phát hiện <span class="count" id="v-count">0</span></h2>
+    <div class="toolbar">
+      <input type="search" id="q" placeholder="Tìm theo mã / tiêu đề…" />
+      <select id="ftype"><option value="">Mọi loại</option></select>
+      <select id="fstatus"><option value="">Mọi trạng thái</option></select>
+      <span class="spacer" style="flex:1"></span>
+      <button class="secondary" id="reload">↻ Tải lại</button>
+    </div>
+    <div class="scroll"><table id="vtable">
+      <thead><tr>
+        <th>Mã</th><th>Tiêu đề</th><th>Loại</th><th>Giảm</th><th>Đơn tối thiểu</th>
+        <th>Hiệu lực</th><th>Trạng thái</th><th>Nguồn</th><th>Thấy lần cuối</th>
+      </tr></thead>
+      <tbody><tr><td colspan="9" class="empty">đang tải…</td></tr></tbody>
+    </table></div>
+  </section>
+</main>
+
+<script>
+(() => {
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  const REFRESH_MS = 8000;
+  let allVouchers = [];
+
+  const root = document.documentElement;
+  const saved = localStorage.getItem("sh-theme");
+  if (saved) root.setAttribute("data-theme", saved);
+  $("theme").onclick = () => {
+    const next = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
+    root.setAttribute("data-theme", next); localStorage.setItem("sh-theme", next);
+  };
+
+  const esc = (v) => String(v ?? "").replace(/[&<>"]/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c]));
+  const fmtTs = (ts) => ts ? new Date(ts).toLocaleString() : "–";
+  const fmtVnd = (s) => {
+    if (s == null) return null;
+    const n = Number(s); if (Number.isNaN(n)) return esc(s);
+    return n.toLocaleString("vi-VN") + "đ";
+  };
+  const discount = (v) => {
+    if (v.discount_percent != null) {
+      let t = Number(v.discount_percent) + "%";
+      if (v.max_discount != null) t += ' <span class="muted">tối đa ' + fmtVnd(v.max_discount) + "</span>";
+      return t;
+    }
+    if (v.discount_amount != null) return fmtVnd(v.discount_amount);
+    if ((v.type || "").toUpperCase() === "FREESHIP" && v.max_discount != null) return fmtVnd(v.max_discount);
+    return '<span class="muted">–</span>';
+  };
+  const window_ = (v) => {
+    if (!v.start_at && !v.end_at) return '<span class="muted">–</span>';
+    return '<span class="when">' + fmtTs(v.start_at) + "<br>→ " + fmtTs(v.end_at) + "</span>";
+  };
+  const typeChip = (t) => {
+    const k = (t || "").toLowerCase();
+    return `<span class="chip ${["platform","freeship","shop","payment"].includes(k)?k:""}">${esc(t)}</span>`;
+  };
+
+  async function getJson(p) { const r = await fetch(p, { headers: { accept: "application/json" } }); if (!r.ok) throw new Error(p+" "+r.status); return r.json(); }
+
+  function renderRuns(data) {
+    const box = $("runs");
+    const last = (data && data.last_per_source) || [];
+    $("src-count").textContent = last.length;
+    if (!last.length) { box.innerHTML = '<div class="empty">chưa có lần thu thập nào</div>'; return; }
+    box.innerHTML = last.map(r => `
+      <div class="run">
+        <div class="src"><span>${esc(r.source)}</span>
+          <span class="dot ${esc(r.outcome)}" title="${esc(r.outcome)}"></span></div>
+        <div class="meta">${fmtTs(r.started_at)}</div>
+        <div class="meta">ứng viên ${r.candidate_count} · mới ${r.new_count} · cập nhật ${r.updated_count}${
+          r.parse_errors ? " · lỗi " + r.parse_errors : ""}${
+          r.latency_ms != null ? " · " + r.latency_ms + "ms" : ""}</div>
+      </div>`).join("");
+  }
+
+  function renderVouchers() {
+    const q = ($("q").value || "").toLowerCase().trim();
+    const ft = $("ftype").value, fs = $("fstatus").value;
+    const rows = allVouchers.filter(v =>
+      (!ft || v.type === ft) && (!fs || v.status === fs) &&
+      (!q || (v.code||"").toLowerCase().includes(q) || (v.title||"").toLowerCase().includes(q)));
+    const tb = $("vtable").querySelector("tbody");
+    if (!rows.length) { tb.innerHTML = `<tr><td colspan="9" class="empty">không có voucher khớp</td></tr>`; return; }
+    tb.innerHTML = rows.map(v => `
+      <tr>
+        <td class="code">${esc(v.code || "—")}</td>
+        <td class="title">${esc(v.title)}</td>
+        <td>${typeChip(v.type)}</td>
+        <td class="money">${discount(v)}</td>
+        <td class="money">${v.min_spend != null ? fmtVnd(v.min_spend) : '<span class="muted">–</span>'}</td>
+        <td>${window_(v)}</td>
+        <td><span class="status ${esc(v.status)}">${esc(v.status)}</span></td>
+        <td class="muted">${esc(v.source)}</td>
+        <td class="when">${fmtTs(v.last_seen_at)}</td>
+      </tr>`).join("");
+  }
+
+  function fillFilters() {
+    const types = [...new Set(allVouchers.map(v => v.type))].sort();
+    const stats = [...new Set(allVouchers.map(v => v.status))].sort();
+    const keep = (sel, cur) => { const v = sel.value; return v; };
+    const build = (sel, vals, label) => {
+      const cur = sel.value;
+      sel.innerHTML = `<option value="">${label}</option>` + vals.map(x => `<option ${x===cur?"selected":""}>${esc(x)}</option>`).join("");
+    };
+    build($("ftype"), types, "Mọi loại");
+    build($("fstatus"), stats, "Mọi trạng thái");
+  }
+
+  async function refresh() {
+    try { renderRuns(await getJson("/collectors")); } catch(e) { $("runs").innerHTML = '<div class="empty">không tải được (storage chưa sẵn sàng)</div>'; }
+    try {
+      const d = await getJson("/vouchers");
+      allVouchers = d.vouchers || [];
+      $("v-count").textContent = allVouchers.length;
+      fillFilters(); renderVouchers();
+    } catch(e) {
+      $("vtable").querySelector("tbody").innerHTML = `<tr><td colspan="9" class="empty">không tải được voucher</td></tr>`;
+    }
+    $("clock").textContent = "cập nhật " + new Date().toLocaleTimeString();
+  }
+
+  ["input","change"].forEach(ev => { $("q").addEventListener(ev, renderVouchers); });
+  $("ftype").onchange = renderVouchers; $("fstatus").onchange = renderVouchers;
+  $("reload").onclick = refresh;
+
+  refresh();
+  setInterval(refresh, REFRESH_MS);
+})();
+</script>
+</body>
+</html>

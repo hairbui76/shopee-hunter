@@ -13,7 +13,9 @@ use axum::{Json, Router};
 use chrono::{DateTime, Utc};
 use serde_json::json;
 use shopee_hunter_observability::{HealthRegistry, Metrics, ServiceState};
-use shopee_hunter_storage::{ClaimRepository, Database, ScheduleRepository};
+use shopee_hunter_storage::{
+    ClaimRepository, CollectorRunRepository, Database, ScheduleRepository, VoucherRepository,
+};
 use tokio_util::sync::CancellationToken;
 
 use crate::control::ControlPlane;
@@ -42,12 +44,16 @@ pub type SharedApiState = Arc<ApiState>;
 /// The operator dashboard: a self-contained single-page app (no build step, no
 /// external assets) served by the app itself so it shares the API's origin and
 /// private bind. Consumes the health/admin JSON endpoints below.
-const DASHBOARD_HTML: &str = include_str!("../static/dashboard.html");
+const DASHBOARD_HTML: &str = include_str!("../static/vouchers.html");
+const OPS_HTML: &str = include_str!("../static/dashboard.html");
 
 pub fn router(state: SharedApiState) -> Router {
     Router::new()
         .route("/", get(dashboard))
         .route("/ui", get(dashboard))
+        .route("/ops", get(ops_dashboard))
+        .route("/vouchers", get(vouchers))
+        .route("/collectors", get(collectors))
         .route("/health/live", get(live))
         .route("/health/ready", get(ready))
         .route("/health/details", get(details))
@@ -78,11 +84,84 @@ fn authorize(state: &ApiState, headers: &HeaderMap) -> Option<(StatusCode, &'sta
     }
 }
 
-async fn dashboard() -> impl IntoResponse {
+fn html(body: &'static str) -> impl IntoResponse {
     (
         [(axum::http::header::CONTENT_TYPE, "text/html; charset=utf-8")],
-        DASHBOARD_HTML,
+        body,
     )
+}
+
+/// Voucher dashboard (the primary user-facing page).
+async fn dashboard() -> impl IntoResponse {
+    html(DASHBOARD_HTML)
+}
+
+/// Operator/health dashboard.
+async fn ops_dashboard() -> impl IntoResponse {
+    html(OPS_HTML)
+}
+
+/// List discovered vouchers, most recently seen first.
+async fn vouchers(State(state): State<SharedApiState>) -> impl IntoResponse {
+    let admin = match &state.admin {
+        Some(a) => a,
+        None => return (StatusCode::NOT_FOUND, "storage not wired").into_response(),
+    };
+    match VoucherRepository::new(&admin.db).list(200).await {
+        Ok(vs) => Json(json!({
+            "count": vs.len(),
+            "vouchers": vs.iter().map(|v| json!({
+                "id": v.id,
+                "code": v.code,
+                "title": v.title,
+                "type": v.voucher_type.as_str(),
+                "discount_amount": v.discount_amount.map(|d| d.to_string()),
+                "discount_percent": v.discount_percent.map(|d| d.to_string()),
+                "max_discount": v.max_discount.map(|d| d.to_string()),
+                "min_spend": v.min_spend.map(|d| d.to_string()),
+                "start_at": v.start_at,
+                "end_at": v.end_at,
+                "status": v.status.as_str(),
+                "source": v.source.as_str(),
+                "first_seen_at": v.first_seen_at,
+                "last_seen_at": v.last_seen_at,
+            })).collect::<Vec<_>>(),
+        }))
+        .into_response(),
+        Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+    }
+}
+
+/// Collector run history: last run per source + the recent runs (the "cron").
+async fn collectors(State(state): State<SharedApiState>) -> impl IntoResponse {
+    let admin = match &state.admin {
+        Some(a) => a,
+        None => return (StatusCode::NOT_FOUND, "storage not wired").into_response(),
+    };
+    let repo = CollectorRunRepository::new(&admin.db);
+    let to_json = |r: &shopee_hunter_storage::CollectorRunSummary| {
+        json!({
+            "source": r.source,
+            "started_at": r.started_at,
+            "finished_at": r.finished_at,
+            "latency_ms": r.latency_ms,
+            "candidate_count": r.candidate_count,
+            "new_count": r.new_count,
+            "updated_count": r.updated_count,
+            "parse_errors": r.parse_errors,
+            "outcome": r.outcome,
+        })
+    };
+    match (repo.last_per_source().await, repo.recent(25).await) {
+        (Ok(last), Ok(recent)) => Json(json!({
+            "last_per_source": last.iter().map(&to_json).collect::<Vec<_>>(),
+            "recent": recent.iter().map(&to_json).collect::<Vec<_>>(),
+        }))
+        .into_response(),
+        (Err(e), _) | (_, Err(e)) => {
+            (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response()
+        }
+    }
 }
 
 async fn live() -> impl IntoResponse {
@@ -327,25 +406,38 @@ mod tests {
         assert!(s.admin.as_ref().unwrap().control.claims_paused());
     }
 
-    #[tokio::test]
-    async fn dashboard_is_served_as_html() {
+    async fn get_html(route: &str) -> (StatusCode, String, String) {
         let res = router(state())
-            .oneshot(Request::get("/").body(Body::empty()).unwrap())
+            .oneshot(Request::get(route).body(Body::empty()).unwrap())
             .await
             .unwrap();
-        assert_eq!(res.status(), StatusCode::OK);
+        let status = res.status();
         let ct = res
             .headers()
             .get("content-type")
             .and_then(|v| v.to_str().ok())
             .unwrap_or_default()
             .to_string();
-        assert!(ct.contains("text/html"), "content-type was {ct}");
         let body = axum::body::to_bytes(res.into_body(), 1 << 20)
             .await
             .unwrap();
-        let html = String::from_utf8_lossy(&body);
+        (status, ct, String::from_utf8_lossy(&body).into_owned())
+    }
+
+    #[tokio::test]
+    async fn voucher_dashboard_is_served_at_root() {
+        let (status, ct, html) = get_html("/").await;
+        assert_eq!(status, StatusCode::OK);
+        assert!(ct.contains("text/html"), "content-type was {ct}");
         assert!(html.contains("shopee-hunter"));
+        assert!(html.contains("/vouchers")); // the page fetches the voucher list
+        assert!(html.contains("/collectors")); // and the last-collection panel
+    }
+
+    #[tokio::test]
+    async fn ops_dashboard_is_served_at_ops() {
+        let (status, _ct, html) = get_html("/ops").await;
+        assert_eq!(status, StatusCode::OK);
         assert!(html.contains("/admin/claims/pause")); // wires to the real action
     }
 

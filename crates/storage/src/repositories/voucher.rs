@@ -143,6 +143,15 @@ impl<'a> VoucherRepository<'a> {
         Ok(row.get::<i64, _>("n"))
     }
 
+    /// List vouchers, most recently seen first (for the voucher dashboard).
+    pub async fn list(&self, limit: i64) -> Result<Vec<Voucher>, StorageError> {
+        let rows = sqlx::query("SELECT * FROM vouchers ORDER BY last_seen_at DESC LIMIT $1")
+            .bind(limit)
+            .fetch_all(self.db.pool())
+            .await?;
+        rows.iter().map(row_to_voucher).collect()
+    }
+
     pub async fn set_status(&self, id: Uuid, status: VoucherStatus) -> Result<(), StorageError> {
         sqlx::query("UPDATE vouchers SET status = $1 WHERE id = $2")
             .bind(status.as_str())

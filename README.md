@@ -70,19 +70,21 @@ COLLECTOR_DEFAULT_INTERVAL_SECS=5 \
 
 The service shuts down cleanly on `Ctrl-C` (SIGINT) or SIGTERM.
 
-## 3. Operator dashboard
+## 3. Web dashboards
 
-The app serves a self-contained web dashboard (no build step, no external
-assets) at the API root — open it in a browser:
+The app serves two self-contained web dashboards (no build step, no external
+assets) — open them in a browser:
 
-```
-http://127.0.0.1:8686/
-```
+- **`http://127.0.0.1:8686/`** — **Voucher dashboard**: the list of discovered
+  vouchers (code, type, discount, minimum spend, validity window, status,
+  source, last seen) with search/filter, plus a "last collection" panel showing
+  the most recent collector run per source (the cron). Auto-refreshes.
+- **`http://127.0.0.1:8686/ops`** — **Operator dashboard**: service health,
+  session & claim-gate state, discovery metrics, scheduled jobs, and recent
+  claim attempts, with pause/resume/refresh buttons (these require the admin
+  token, entered in the page and stored only in your browser).
 
-It shows service health, session & claim-gate state, discovery metrics,
-scheduled jobs, and recent claim attempts (auto-refreshing), with buttons to
-pause/resume claims and request a session refresh (these require the admin
-token, entered in the page and stored only in your browser).
+JSON behind them: `GET /vouchers`, `GET /collectors`.
 
 > **Exposing it:** set `HEALTHCHECK_BIND_ADDR=0.0.0.0:8686` to reach it from
 > other machines. The read views are unauthenticated, so only expose it on a

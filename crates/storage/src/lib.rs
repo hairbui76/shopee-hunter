@@ -14,7 +14,9 @@ pub mod repositories;
 pub use db::{Database, DbKind};
 pub use error::StorageError;
 pub use repositories::claim::{ClaimAttemptRecord, ClaimRepository};
-pub use repositories::collector::{CollectorRunRecord, CollectorRunRepository, RunOutcome};
+pub use repositories::collector::{
+    CollectorRunRecord, CollectorRunRepository, CollectorRunSummary, RunOutcome,
+};
 pub use repositories::health::HealthRepository;
 pub use repositories::maintenance::{MaintenanceRepository, PruneReport, RetentionPolicy};
 pub use repositories::outbox::{OutboxRepository, OutboxRow, OutboxStatus};
