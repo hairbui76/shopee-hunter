@@ -1,0 +1,26 @@
+[
+  {
+    "source": "replay",
+    "source_key": "replay-sample-1",
+    "external_id": "replay-sample-1",
+    "code": "FREESHIPDEMO",
+    "promotion_id": null,
+    "signature": null,
+    "title": "Demo freeship voucher",
+    "description": "Sample replay voucher for local end-to-end runs",
+    "voucher_type": "FREESHIP",
+    "discount_type": null,
+    "discount_amount": "15000",
+    "discount_percent": null,
+    "max_discount": "15000",
+    "min_spend": "0",
+    "start_at": null,
+    "end_at": null,
+    "scope": {"kind": "PLATFORM"},
+    "payment_method": null,
+    "landing_url": null,
+    "raw_payload": {"k": "replay-sample-1"},
+    "observed_at": "2026-08-08T00:00:00Z",
+    "parser_version": "replay/1"
+  }
+]
